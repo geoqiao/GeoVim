@@ -12,6 +12,10 @@ return {
       require("which-key").setup({
         preset = "modern",
         delay = 300, -- 按键后 300ms 再弹出提示，反应更快
+        timeoutlen = 400,
+        triggers = {
+          { "<auto>", mode = "nixsotc" },
+        },
         icons = {
           mappings = false, -- 不使用图标，纯文字对新手更直观
         },

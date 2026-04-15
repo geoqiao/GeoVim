@@ -33,4 +33,7 @@ return {
 
   -- 快速注释（VSCode 式 Ctrl+/）
   { import = "plugins.comment" },
+
+  -- Claude Code 集成
+  { import = "plugins.claude-code" },
 }

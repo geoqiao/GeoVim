@@ -50,10 +50,8 @@ return {
           -- 禁用 basedpyright / pyright，避免与 ty 冲突
           ["basedpyright"] = function() end,
           ["pyright"] = function() end,
-          -- 其它 LSP 走默认 setup
-          function(server_name)
-            require("lspconfig")[server_name].setup({})
-          end,
+          -- 注意：其它 LSP 已经在 lua/plugins/lsp.lua 中用 vim.lsp.config/enable 注册，
+          -- 这里不再走 lspconfig 的默认 setup，避免重复注册。
         },
       })
     end,
@@ -69,6 +67,7 @@ return {
         ensure_installed = {
           -- Lua
           "stylua",
+          "luacheck",
           -- Python
           "ruff",
           -- Web

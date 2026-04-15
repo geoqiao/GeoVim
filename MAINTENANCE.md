@@ -123,7 +123,7 @@
 - **Buffer 级映射**（LSP、Git 等）统一写在 `lua/autocmds.lua` 或对应插件的 `on_attach` 里
 - Leader 键是 `<Space>`
 - 不覆盖 `hjkl`、`y`/`p`、`Ctrl-o`/`Ctrl-i` 等原生核心键位
-- `<Tab>`  intentionally 不映射，避免破坏 jump list
+- `<Tab>` intentionally 不映射，避免破坏 jump list
 
 ---
 
@@ -166,3 +166,4 @@ rm -rf ~/.local/share/nvim/lazy/markdown-preview.nvim
 
 - `theme.lua` 中 `lazy = false` 和 `priority = 1000` 确保主题最先加载
 - `init.lua` 末尾的 `vim.cmd("colorscheme catppuccin-frappe")` 是冗余保险，若删除需确保 `theme.lua` 的 `config` 中已设置
+

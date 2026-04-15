@@ -102,7 +102,7 @@ autocmd("LspAttach", {
         callback = function()
           -- 只有当 conform.nvim 不存在或没处理时，才用 LSP 格式化
           local ok, conform = pcall(require, "conform")
-          if not ok or not conform.will_fallback_lsp({ bufnr = bufnr }) then
+          if not ok or not conform.will_fallback_to_lsp({ bufnr = bufnr }) then
             vim.lsp.buf.format({ bufnr = bufnr, id = client.id })
           end
         end,

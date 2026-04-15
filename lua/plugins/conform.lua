@@ -51,6 +51,7 @@ return {
                 or nil,
           },
           sqlfluff = {
+            require_cwd = false,
             args = {
               "fix",
               "--dialect=ansi",

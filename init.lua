@@ -44,6 +44,9 @@ require("lazy").setup({
   spec = { import = "plugins" },
   defaults = { lazy = false, version = false },
   install = { colorscheme = { "catppuccin" } },
+  git = {
+    timeout = 120, -- 拉取插件时进程超时时间（秒）
+  },
   ui = {
     icons = {
       ft = "",
