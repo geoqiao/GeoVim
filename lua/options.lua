@@ -1,11 +1,11 @@
 -- ============================================
 -- 编辑器基本选项 (Options)
 -- ============================================
--- 这里设置的是 Neovim 最基础的行为，决定它“看起来”和“摸起来”怎么样。
+-- 这里设置的是 Neovim 最基础的行为，决定它"看起来"和"摸起来"怎么样。
 -- 所有设置都带有中文注释，方便没有编程背景的用户理解。
 
-local o = vim.o        -- 用于设置全局选项
-local opt = vim.opt    -- 用于设置更复杂的列表型选项
+local o = vim.o -- 用于设置全局选项
+local opt = vim.opt -- 用于设置更复杂的列表型选项
 
 -- ============================================
 -- 一、编辑行为（最重要的部分）
@@ -13,78 +13,94 @@ local opt = vim.opt    -- 用于设置更复杂的列表型选项
 
 -- 缩进宽度：按一次 Tab / 自动缩进时，使用 4 个空格
 o.shiftwidth = 4
-o.tabstop = 4          -- 显示一个 Tab 字符的宽度
-o.softtabstop = 4      -- 在 Insert 模式下按 Tab 时，感觉上也是 4 个空格
-o.expandtab = true     -- 按键入 Tab 时，实际插入的是“空格”而不是真正的 Tab 字符
-o.smartindent = true   -- 新行自动根据上下文缩进（比如写完 { 后换行）
-o.autoindent = true    -- 新行继承上一行的缩进
+o.tabstop = 4 -- 显示一个 Tab 字符的宽度
+o.softtabstop = 4 -- 在 Insert 模式下按 Tab 时，感觉上也是 4 个空格
+o.expandtab = true -- 按键入 Tab 时，实际插入的是"空格"而不是真正的 Tab 字符
+o.smartindent = true -- 新行自动根据上下文缩进（比如写完 { 后换行）
+o.autoindent = true -- 新行继承上一行的缩进
 
 -- ============================================
 -- 二、界面显示
 -- ============================================
 
-o.number = true        -- 显示左侧行号
+o.number = true -- 显示左侧行号
 o.relativenumber = true -- 显示相对行号（方便配合 j/k 快速跳转）
-o.cursorline = true    -- 高亮当前光标所在的整行
+o.cursorline = true -- 高亮当前光标所在的整行
 o.cursorlineopt = "both" -- 同时高亮行号和行内容
 o.colorcolumn = "88,120" -- 在第 88 和 120 列显示一条竖线，提示你行不要太长
-o.signcolumn = "yes"   -- 左侧始终保留一列，用于显示错误/警告图标（避免内容跳动）
-o.wrap = false         -- 一行文字太长时，不要自动换行显示
-o.scrolloff = 8        -- 光标上下至少保留 8 行可见（不会贴到屏幕边缘）
+o.signcolumn = "yes" -- 左侧始终保留一列，用于显示错误/警告图标（避免内容跳动）
+o.wrap = false -- 一行文字太长时，不要自动换行显示
+o.scrolloff = 8 -- 光标上下至少保留 8 行可见（不会贴到屏幕边缘）
 o.sidescrolloff = 8
-o.pumheight = 10       -- 代码补全弹窗最多显示 10 行
+o.pumheight = 10 -- 代码补全弹窗最多显示 10 行
 o.termguicolors = true -- 启用 24-bit 真彩色（主题才能好看）
-o.showmode = false     -- 不显示 -- INSERT -- 等模式提示（状态栏插件会替代它）
+o.showmode = false -- 不显示 -- INSERT -- 等模式提示（状态栏插件会替代它）
 
 -- ============================================
 -- 三、搜索行为
 -- ============================================
 
-o.ignorecase = true    -- 搜索时默认忽略大小写
-o.smartcase = true     -- 但如果搜索词里包含大写字母，则变为大小写敏感
-o.hlsearch = true      -- 高亮所有匹配结果
-o.incsearch = true     -- 边输入边实时显示匹配结果
+o.ignorecase = true -- 搜索时默认忽略大小写
+o.smartcase = true -- 但如果搜索词里包含大写字母，则变为大小写敏感
+o.hlsearch = true -- 高亮所有匹配结果
+o.incsearch = true -- 边输入边实时显示匹配结果
+o.inccommand = "split" -- :%s 替换时，在底部小窗口实时预览效果
 
 -- ============================================
 -- 四、文件与历史
 -- ============================================
 
-o.undofile = true      -- 即使关闭文件再打开，也能按 u 撤销之前的修改
-o.backup = false       -- 不创建 ~ 结尾的备份文件
-o.writebackup = false  -- 写入时不创建临时备份
-o.swapfile = false     -- 不创建 .swp 交换文件（现代系统很少崩溃，可以关掉）
-o.updatetime = 250     -- 光标停止移动后 250ms 触发自动保存 / 诊断刷新等
-o.timeoutlen = 400     -- 按组合键时，等待下一个按键的最长时间（which-key 弹出更快）
+o.undofile = true -- 即使关闭文件再打开，也能按 u 撤销之前的修改
+o.backup = false -- 不创建 ~ 结尾的备份文件
+o.writebackup = false -- 写入时不创建临时备份
+o.swapfile = false -- 不创建 .swp 交换文件（现代系统很少崩溃，可以关掉）
+o.updatetime = 250 -- 光标停止移动后 250ms 触发自动保存 / 诊断刷新等
+o.timeoutlen = 500 -- 按组合键时，等待下一个按键的最长时间
 
 -- ============================================
 -- 五、剪贴板与鼠标
 -- ============================================
 
 o.clipboard = "unnamedplus" -- y（复制）和 p（粘贴）直接使用系统剪贴板
-o.mouse = "a"               -- 在所有模式下都可以使用鼠标点击和滚轮
+o.mouse = "a" -- 在所有模式下都可以使用鼠标点击和滚轮
 
 -- ============================================
 -- 六、窗口分割
 -- ============================================
 
-o.splitbelow = true    -- 水平分割新窗口时，出现在下方
-o.splitright = true    -- 垂直分割新窗口时，出现在右方
+o.splitbelow = true -- 水平分割新窗口时，出现在下方
+o.splitright = true -- 垂直分割新窗口时，出现在右方
 
 -- ============================================
 -- 七、代码补全菜单
 -- ============================================
-opt.completeopt = { "menu", "menuone", "noselect", "noinsert" }
+opt.completeopt = { "menuone", "noselect", "popup" }
 
 -- ============================================
--- 八、代码折叠（默认全部展开，但支持按语法折叠）
+-- 八、诊断显示样式（尽早生效，不限于 LSP 场景）
+-- ============================================
+vim.diagnostic.config({
+    virtual_text = true, -- 在行尾显示简短错误信息
+    signs = true, -- 左侧显示错误/警告图标
+    underline = true, -- 给有问题的代码加下划线
+    update_in_insert = false, -- Insert 模式下不更新诊断，减少干扰
+    severity_sort = true, -- 按严重程度排序
+    float = {
+        border = "rounded",
+        source = true,
+    },
+})
+
+-- ============================================
+-- 九、代码折叠（默认全部展开，但支持按语法折叠）
 -- ============================================
 opt.foldmethod = "expr"
 opt.foldexpr = "v:lua.vim.treesitter.foldexpr()" -- Neovim 0.10+ 原生 treesitter 折叠
-opt.foldenable = false   -- 打开文件时，默认不折叠任何内容
+opt.foldenable = false -- 打开文件时，默认不折叠任何内容
 opt.foldlevel = 99
 
 -- ============================================
--- 九、编码与语言
+-- 十、编码与语言
 -- ============================================
 o.fileencoding = "utf-8" -- 默认使用 UTF-8 编码保存文件
-o.conceallevel = 0       -- 不要隐藏任何字符（比如 Markdown 的链接标记）
+o.conceallevel = 0 -- 不要隐藏任何字符（比如 Markdown 的链接标记）

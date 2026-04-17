@@ -5,33 +5,36 @@
 -- 告诉你接下来可以按什么键。对新手极其友好！
 
 return {
-  {
-    "folke/which-key.nvim",
-    event = "VeryLazy",
-    config = function()
-      require("which-key").setup({
-        preset = "modern",
-        delay = 300, -- 按键后 300ms 再弹出提示，反应更快
-        timeoutlen = 400,
-        triggers = {
-          { "<auto>", mode = "nixsotc" },
-        },
-        icons = {
-          mappings = false, -- 不使用图标，纯文字对新手更直观
-        },
-      })
+    {
+        "folke/which-key.nvim",
+        event = "VeryLazy",
+        config = function()
+            require("which-key").setup({
+                preset = "modern",
+                delay = 250, -- 按键后 250ms 再弹出提示
+                -- timeoutlen 已在 options.lua 中设置，此处无需重复
+                triggers = {
+                    { "<auto>", mode = "nixsotc" },
+                },
+                icons = {
+                    mappings = false, -- 不使用图标，纯文字对新手更直观
+                },
+            })
 
-      -- 注册常用的前缀分组，让提示更有条理
-      require("which-key").add({
-        { "<leader>f", group = "Find / Search" },
-        { "<leader>e", group = "Explorer" },
-        { "<leader>s", group = "Split" },
-        { "<leader>g", group = "Git" },
-        { "<leader>m", group = "Markdown" },
-        { "<leader>d", group = "Diagnostics" },
-        { "<leader>c", group = "Code Action" },
-        { "<leader>y", group = "System Clipboard" },
-      })
-    end,
-  },
+            -- 注册常用的前缀分组
+            require("which-key").add({
+                { "<leader>a", group = "AI (Claude)" },
+                { "<leader>b", group = "Buffer" },
+                { "<leader>h", group = "HTML" },
+                { "<leader>c", group = "Code Action" },
+                { "<leader>d", group = "Diagnostics" },
+                { "<leader>e", group = "Explorer" },
+                { "<leader>f", group = "Find / Search" },
+                { "<leader>g", group = "Git" },
+                { "<leader>m", group = "Markdown" },
+                { "<leader>s", group = "Split" },
+                { "<leader>y", group = "System Clipboard" },
+            })
+        end,
+    },
 }
