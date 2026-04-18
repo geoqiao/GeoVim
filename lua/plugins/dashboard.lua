@@ -11,19 +11,43 @@ return {
         priority = 900, -- 比主题低一点，但足够早
         dependencies = { "nvim-tree/nvim-web-devicons" },
         config = function()
+            -- 每日名言池
+            local quotes = {
+                "Talk is cheap. Show me the code. — Linus Torvalds",
+                "Simplicity is the soul of efficiency. — Austin Freeman",
+                "Code is like humor. When you have to explain it, it's bad. — Cory House",
+                "First, solve the problem. Then, write the code. — John Johnson",
+                "Experience is the name everyone gives to their mistakes. — Oscar Wilde",
+                "Make it work, make it right, make it fast. — Kent Beck",
+                "Clean code always looks like it was written by someone who cares. — Robert C. Martin",
+                "The only way to learn a new programming language is by writing programs in it. — Dennis Ritchie",
+                "Programming isn't about what you know; it's about what you can figure out. — Chris Pine",
+                "Any fool can write code that a computer can understand. Good programmers write code that humans can understand. — Martin Fowler",
+            }
+            math.randomseed(os.time())
+            local quote = quotes[math.random(#quotes)]
+
+            -- Neovim 版本信息
+            local ver = vim.version()
+            local ver_str = string.format("v%d.%d.%d", ver.major, ver.minor, ver.patch)
+            local datetime_str = os.date("%Y-%m-%d %H:%M")
+
             require("dashboard").setup({
                 theme = "hyper", -- hyper = Logo + 快捷按钮 + 最近项目（最像 NvChad）
                 config = {
-                    -- ASCII Logo displayed in the center on startup
+                    -- ASCII Logo + 系统信息
                     header = {
-                        "                                                     ",
-                        "  ███╗   ██╗███████╗ ██████╗ ██╗   ██╗██╗███╗   ███╗ ",
-                        "  ████╗  ██║██╔════╝██╔═══██╗██║   ██║██║████╗ ████║ ",
-                        "  ██╔██╗ ██║█████╗  ██║   ██║██║   ██║██║██╔████╔██║ ",
-                        "  ██║╚██╗██║██╔══╝  ██║   ██║╚██╗ ██╔╝██║██║╚██╔╝██║ ",
-                        "  ██║ ╚████║███████╗╚██████╔╝ ╚████╔╝ ██║██║ ╚═╝ ██║ ",
-                        "  ╚═╝  ╚═══╝╚══════╝ ╚═════╝   ╚═══╝  ╚═╝╚═╝     ╚═╝ ",
-                        "                                                     ",
+                        "                                              ",
+                        "  ██████   ██████   ██████  ██    ██ ██    ██",
+                        "  ██      ██    ██ ██    ██ ██    ██ ██    ██",
+                        "  ██   ███ ██    ██ ██    ██ ██    ██ ██    ██",
+                        "  ██    ██ ██    ██ ██    ██  ██  ██   ██  ██ ",
+                        "   ██████   ██████   ██████    ████     ████  ",
+                        "                                              ",
+                        "        ⚡ GeoVim — Code at the speed of thought",
+                        "                                              ",
+                        "  " .. datetime_str .. "  |  Neovim " .. ver_str,
+                        "                                              ",
                     },
 
                     -- Shortcuts: icon + label + key hint + command
@@ -61,10 +85,10 @@ return {
                         action = "Telescope find_files cwd=",
                     },
 
-                    -- Footer text
+                    -- Footer: daily quote
                     footer = {
                         "",
-                        "🚀 Let's code!",
+                        quote,
                     },
                 },
                 hide = {
