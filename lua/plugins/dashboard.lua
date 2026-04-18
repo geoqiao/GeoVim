@@ -35,16 +35,12 @@ return {
             require("dashboard").setup({
                 theme = "hyper", -- hyper = Logo + 快捷按钮 + 最近项目（最像 NvChad）
                 config = {
-                    -- ASCII Logo + 系统信息
+                    -- Header: Emoji + text logo (reliable across all terminals)
                     header = {
                         "                                              ",
-                        "  ██████   ██████   ██████  ██    ██ ██    ██",
-                        "  ██      ██    ██ ██    ██ ██    ██ ██    ██",
-                        "  ██   ███ ██    ██ ██    ██ ██    ██ ██    ██",
-                        "  ██    ██ ██    ██ ██    ██  ██  ██   ██  ██ ",
-                        "   ██████   ██████   ██████    ████     ████  ",
                         "                                              ",
-                        "        ⚡ GeoVim — Code at the speed of thought",
+                        "                  ⚡ GeoVim                    ",
+                        "         Code at the speed of thought         ",
                         "                                              ",
                         "  " .. datetime_str .. "  |  Neovim " .. ver_str,
                         "                                              ",
