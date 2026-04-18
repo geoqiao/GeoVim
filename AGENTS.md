@@ -104,6 +104,10 @@ Lua 代码统一使用 **StyLua** 格式化，配置见 `.stylua.toml`：
 - 标题使用祈使语气（如 `fix: resolve ty completion trigger` 而非 `fixed: resolved...`）；
 - 如需要详细说明，在标题后空一行写正文，正文同样使用英文。
 
+**Git 工作流规则**：
+- **Always commit**：完成任何修改后必须立即执行 `git commit`，保持工作区干净；
+- **Push 前必须确认**：执行 `git push` 之前，**必须向用户请求明确确认**，未经同意不得推送至远程仓库。
+
 ---
 
 ## 测试说明
