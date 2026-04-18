@@ -55,13 +55,7 @@ return {
             vim.lsp.enable("ty")
 
             -- ============================================
-            -- 3. Python (basedpyright) —— 已禁用
-            -- ============================================
-            -- vim.lsp.config("basedpyright", { ... })
-            -- vim.lsp.enable("basedpyright")
-
-            -- ============================================
-            -- 4. TypeScript / JavaScript
+            -- 3. TypeScript / JavaScript
             -- ============================================
             vim.lsp.config("ts_ls", {
                 root_markers = { "tsconfig.json", "jsconfig.json", "package.json", ".git" },

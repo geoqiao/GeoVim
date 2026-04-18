@@ -49,8 +49,7 @@ return {
                 handlers = {
                     -- 所有 LSP 的 config() 和 enable() 统一在 lsp.lua 中管理，
                     -- mason-lspconfig 只负责安装，不在这里启用，避免配置顺序冲突。
-                    -- 禁用以下服务器，避免与 ty 冲突或重复启用：
-                    ["basedpyright"] = function() end,
+                    -- 禁用 pyright，避免与 ty 冲突或重复启用：
                     ["pyright"] = function() end,
                 },
             })

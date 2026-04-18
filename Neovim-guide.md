@@ -415,22 +415,6 @@ select = ["E", "F", "I", "N", "W", "UP", "B", "SIM", "C4"]
 - 离开 Insert 模式或保存后自动运行 `ruff check`
 - **`ty` 提供类型提示和自动补全**：对 uv 和 `.venv` 的兼容性好
 
-### 切换回 `basedpyright`（备用选项）
-
-如果你更习惯 basedpyright，编辑 `~/.config/nvim/lua/plugins/lsp.lua`：
-
-1. 注释掉 `ty` 部分
-2. 取消 `basedpyright` 部分的注释
-3. 同时修改 `~/.config/nvim/lua/plugins/mason.lua`，把 `ensure_installed` 里的 `"ty"` 改回 `"basedpyright"`
-
-然后运行：
-
-```vim
-:MasonInstall basedpyright
-```
-
-重启 Neovim 即可。
-
 ---
 
 ## JS / TS 开发
