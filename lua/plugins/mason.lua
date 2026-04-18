@@ -52,7 +52,6 @@ return {
                     -- 禁用以下服务器，避免与 ty 冲突或重复启用：
                     ["basedpyright"] = function() end,
                     ["pyright"] = function() end,
-                    ["ruff_lsp"] = function() end,
                 },
             })
         end,
