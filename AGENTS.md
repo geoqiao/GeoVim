@@ -98,6 +98,12 @@ Lua 代码统一使用 **StyLua** 格式化，配置见 `.stylua.toml`：
 - **`<Tab>` 故意不映射**，因为它在 Vim 底层等价于 `Ctrl-i`，重映射会破坏跳转列表；
 - Buffer 切换使用 `<leader>bn` / `<leader>bp`（保留 `H`/`L` 的原生屏幕导航功能）。
 
+**Git 提交规范**：
+- **所有 commit message 必须使用英文**（包括标题和正文），遵循 [Conventional Commits](https://www.conventionalcommits.org/) 规范；
+- 类型前缀使用小写：`feat:`、`fix:`、`chore:`、`docs:`、`refactor:`、`style:`、`test:`；
+- 标题使用祈使语气（如 `fix: resolve ty completion trigger` 而非 `fixed: resolved...`）；
+- 如需要详细说明，在标题后空一行写正文，正文同样使用英文。
+
 ---
 
 ## 测试说明

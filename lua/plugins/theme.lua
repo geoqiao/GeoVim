@@ -11,7 +11,7 @@ return {
         lazy = false, -- 不能懒加载，否则启动时界面会先闪一下默认色
         priority = 1000, -- 优先级设高，确保最先加载
         opts = {
-            flavour = "frappe", -- 可选：latte, frappe, macchiato, mocha
+            flavour = "mocha", -- 可选：latte, frappe, macchiato, mocha
             transparent_background = true,
             integrations = {
                 -- 未安装 nvim-cmp，使用原生 vim.lsp.completion
@@ -44,7 +44,7 @@ return {
         },
         config = function(_, opts)
             require("catppuccin").setup(opts)
-            vim.cmd("colorscheme catppuccin-frappe")
+            vim.cmd("colorscheme catppuccin-mocha")
 
             -- 透明背景下，强制关键高亮组背景透明
             local transparent_groups = {
