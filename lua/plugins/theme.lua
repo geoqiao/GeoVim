@@ -14,7 +14,8 @@ return {
             flavour = "frappe", -- 可选：latte, frappe, macchiato, mocha
             transparent_background = true,
             integrations = {
-                cmp = true,
+                -- 未安装 nvim-cmp，使用原生 vim.lsp.completion
+                -- cmp = true,
                 gitsigns = true,
                 nvimtree = true,
                 treesitter = true,
@@ -45,11 +46,38 @@ return {
             require("catppuccin").setup(opts)
             vim.cmd("colorscheme catppuccin-frappe")
 
-            -- 透明背景下，让 colorcolumn / signcolumn / 行号列也透明显示
-            vim.api.nvim_set_hl(0, "ColorColumn", { bg = "NONE" })
-            vim.api.nvim_set_hl(0, "SignColumn", { bg = "NONE" })
-            vim.api.nvim_set_hl(0, "LineNr", { bg = "NONE" })
-            vim.api.nvim_set_hl(0, "CursorLineNr", { bg = "NONE" })
+            -- 透明背景下，强制关键高亮组背景透明
+            local transparent_groups = {
+                "Normal",
+                "NormalNC",
+                "NormalFloat",
+                "FloatBorder",
+                "FloatTitle",
+                "EndOfBuffer",
+                "ColorColumn",
+                "SignColumn",
+                "LineNr",
+                "CursorLineNr",
+                "FoldColumn",
+                "WinSeparator",
+                "VertSplit",
+                "StatusLine",
+                "StatusLineNC",
+                "TabLine",
+                "TabLineFill",
+                "Pmenu",
+                "PmenuSel",
+                "PmenuSbar",
+                "PmenuThumb",
+                "TelescopeNormal",
+                "TelescopeBorder",
+                "NvimTreeNormal",
+                "NvimTreeNormalNC",
+                "NvimTreeWinSeparator",
+            }
+            for _, group in ipairs(transparent_groups) do
+                vim.api.nvim_set_hl(0, group, { bg = "NONE" })
+            end
         end,
     },
 }

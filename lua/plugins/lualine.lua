@@ -18,6 +18,7 @@ return {
                     disabled_filetypes = {
                         statusline = { "NvimTree", "lazy" },
                     },
+                    transparent = true, -- 状态栏背景透明
                 },
                 sections = {
                     lualine_a = { "mode" },

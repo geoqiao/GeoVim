@@ -92,6 +92,20 @@ autocmd("LspAttach", {
         -- 当 LSP 连接上后，自动启用基于 LSP 的补全菜单。
         -- 不需要额外的补全插件！
         if client:supports_method("textDocument/completion") then
+            -- 为 ty 扩展 trigger characters，让输入任意字母/下划线都能自动触发补全
+            -- （ty 默认 triggerCharacters 只有 "."，导致只有 "." 后才自动弹出菜单）
+            if client.name == "ty" and client.server_capabilities.completionProvider then
+                local triggers = { "." }
+                for i = string.byte("a"), string.byte("z") do
+                    table.insert(triggers, string.char(i))
+                end
+                for i = string.byte("A"), string.byte("Z") do
+                    table.insert(triggers, string.char(i))
+                end
+                table.insert(triggers, "_")
+                client.server_capabilities.completionProvider.triggerCharacters = triggers
+            end
+
             vim.lsp.completion.enable(true, client.id, bufnr, {
                 autotrigger = true, -- 输入时自动弹出补全
                 convert = function(item)
@@ -126,8 +140,11 @@ autocmd("LspDetach", {
 -- ============================================
 autocmd({ "BufWritePost", "InsertLeave" }, {
     group = augroup("auto_lint", { clear = true }),
-    pattern = { "lua", "python", "sql" },
     callback = function(args)
+        local ft = vim.bo[args.buf].filetype
+        if not vim.tbl_contains({ "lua", "python", "sql" }, ft) then
+            return
+        end
         local ok, lint = pcall(require, "lint")
         if not ok then
             vim.notify("[GeoVim] nvim-lint 未加载，跳过 lint", vim.log.levels.WARN)

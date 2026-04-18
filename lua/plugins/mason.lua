@@ -47,13 +47,21 @@ return {
                 },
                 automatic_installation = false,
                 handlers = {
-                    -- 默认 handler：安装完成后自动启用（解决安装后需重启的问题）
-                    function(server_name)
-                        vim.lsp.enable(server_name)
-                    end,
-                    -- 禁用 basedpyright / pyright，避免与 ty 冲突
+                    -- 只启用已在 lsp.lua 中显式配置过的服务器，避免意外启用其他 LSP
+                    ["lua_ls"] = function() vim.lsp.enable("lua_ls") end,
+                    ["ty"] = function() vim.lsp.enable("ty") end,
+                    ["ts_ls"] = function() vim.lsp.enable("ts_ls") end,
+                    ["html"] = function() vim.lsp.enable("html") end,
+                    ["cssls"] = function() vim.lsp.enable("cssls") end,
+                    ["jsonls"] = function() vim.lsp.enable("jsonls") end,
+                    ["yamlls"] = function() vim.lsp.enable("yamlls") end,
+                    ["marksman"] = function() vim.lsp.enable("marksman") end,
+                    ["sqlls"] = function() vim.lsp.enable("sqlls") end,
+                    ["eslint"] = function() vim.lsp.enable("eslint") end,
+                    -- 禁用 basedpyright / pyright / ruff-lsp，避免与 ty 冲突或重复启用
                     ["basedpyright"] = function() end,
                     ["pyright"] = function() end,
+                    ["ruff_lsp"] = function() end,
                 },
             })
         end,

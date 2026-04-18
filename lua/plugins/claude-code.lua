@@ -10,12 +10,6 @@ return {
         "greggh/claude-code.nvim",
         dependencies = { "nvim-lua/plenary.nvim" },
         cmd = { "ClaudeCode", "ClaudeCodeContinue", "ClaudeCodeResume", "ClaudeCodeVerbose" },
-        keys = {
-            { "<leader>ac", "<cmd>ClaudeCode<cr>", desc = "打开/关闭 Claude Code", mode = "n" },
-            { "<leader>aC", "<cmd>ClaudeCodeContinue<cr>", desc = "Claude Code 继续对话", mode = "n" },
-            { "<leader>aR", "<cmd>ClaudeCodeResume<cr>", desc = "Claude Code 恢复对话", mode = "n" },
-            { "<leader>aV", "<cmd>ClaudeCodeVerbose<cr>", desc = "Claude Code 详细模式", mode = "n" },
-        },
         config = function()
             -- 如果系统未安装 claude 命令，给出提示并跳过配置
             if vim.fn.executable("claude") ~= 1 then
