@@ -12,7 +12,7 @@ return {
         config = function()
             require("lualine").setup({
                 options = {
-                    theme = "catppuccin-mocha", -- 与当前 catppuccin-mocha 主题保持一致
+                    theme = "neodarcula", -- 与 neodarcula (PyCharm Darcula) 主题保持一致
                     component_separators = { left = "", right = "" },
                     section_separators = { left = "", right = "" },
                     disabled_filetypes = {

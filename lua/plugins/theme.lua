@@ -1,50 +1,20 @@
 -- ============================================
--- 主题 Colorscheme
+-- 主题 Colorscheme (Neodarcula - PyCharm Darcula Style)
 -- ============================================
--- Catppuccin 是一套非常精致、低饱和的配色方案，
--- 有四种变体：latte（亮）、frappe（暗）、macchiato（更暗）、mocha（最暗）。
+-- Neodarcula 是 IntelliJ IDEA / PyCharm 默认 Darcula 主题的 Neovim 移植。
+-- 特点：深灰背景 (#2B2B2B)、橙色关键字、黄色函数、绿色字符串。
 
 return {
     {
-        "catppuccin/nvim",
-        name = "catppuccin",
-        lazy = false, -- 不能懒加载，否则启动时界面会先闪一下默认色
-        priority = 1000, -- 优先级设高，确保最先加载
-        opts = {
-            flavour = "mocha", -- 可选：latte, frappe, macchiato, mocha
-            transparent_background = true,
-            integrations = {
-                -- 未安装 nvim-cmp，使用原生 vim.lsp.completion
-                -- cmp = true,
-                gitsigns = true,
-                nvimtree = true,
-                treesitter = true,
-                telescope = true,
-                mason = true,
-                notify = true,
-                mini = true,
-                which_key = true,
-                lsp_trouble = true,
-                native_lsp = {
-                    enabled = true,
-                    virtual_text = {
-                        errors = { "italic" },
-                        hints = { "italic" },
-                        warnings = { "italic" },
-                        information = { "italic" },
-                    },
-                    underlines = {
-                        errors = { "underline" },
-                        hints = { "underline" },
-                        warnings = { "underline" },
-                        information = { "underline" },
-                    },
-                },
-            },
-        },
-        config = function(_, opts)
-            require("catppuccin").setup(opts)
-            vim.cmd("colorscheme catppuccin-mocha")
+        "pmouraguedes/neodarcula.nvim",
+        lazy = false,
+        priority = 1000,
+        config = function()
+            require("neodarcula").setup({
+                transparent = true, -- 启用透明背景（与 GeoVim 透明风格一致）
+                dim = false,        -- 不暗化非活动窗口
+            })
+            vim.cmd("colorscheme neodarcula")
 
             -- 透明背景下，强制关键高亮组背景透明
             local transparent_groups = {
@@ -74,6 +44,14 @@ return {
                 "NvimTreeNormal",
                 "NvimTreeNormalNC",
                 "NvimTreeWinSeparator",
+                -- Dashboard 区域
+                "DashboardHeader",
+                "DashboardCenter",
+                "DashboardFooter",
+                "DashboardProjectTitle",
+                "DashboardProjectIcon",
+                "DashboardMruTitle",
+                "DashboardShortCut",
             }
             for _, group in ipairs(transparent_groups) do
                 vim.api.nvim_set_hl(0, group, { bg = "NONE" })
