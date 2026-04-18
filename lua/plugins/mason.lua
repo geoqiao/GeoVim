@@ -47,18 +47,9 @@ return {
                 },
                 automatic_installation = false,
                 handlers = {
-                    -- 只启用已在 lsp.lua 中显式配置过的服务器，避免意外启用其他 LSP
-                    ["lua_ls"] = function() vim.lsp.enable("lua_ls") end,
-                    ["ty"] = function() vim.lsp.enable("ty") end,
-                    ["ts_ls"] = function() vim.lsp.enable("ts_ls") end,
-                    ["html"] = function() vim.lsp.enable("html") end,
-                    ["cssls"] = function() vim.lsp.enable("cssls") end,
-                    ["jsonls"] = function() vim.lsp.enable("jsonls") end,
-                    ["yamlls"] = function() vim.lsp.enable("yamlls") end,
-                    ["marksman"] = function() vim.lsp.enable("marksman") end,
-                    ["sqlls"] = function() vim.lsp.enable("sqlls") end,
-                    ["eslint"] = function() vim.lsp.enable("eslint") end,
-                    -- 禁用 basedpyright / pyright / ruff-lsp，避免与 ty 冲突或重复启用
+                    -- 所有 LSP 的 config() 和 enable() 统一在 lsp.lua 中管理，
+                    -- mason-lspconfig 只负责安装，不在这里启用，避免配置顺序冲突。
+                    -- 禁用以下服务器，避免与 ty 冲突或重复启用：
                     ["basedpyright"] = function() end,
                     ["pyright"] = function() end,
                     ["ruff_lsp"] = function() end,

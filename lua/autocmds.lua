@@ -144,6 +144,10 @@ autocmd("LspDetach", {
 autocmd("FileType", {
     group = augroup("treesitter_highlight", { clear = true }),
     callback = function(args)
+        -- 避免对已启动的 buffer 重复调用
+        if vim.b[args.buf].ts_highlight_enabled then
+            return
+        end
         local ft = vim.bo[args.buf].filetype
         local lang = vim.treesitter.language.get_lang(ft)
         if not lang then
@@ -153,6 +157,7 @@ autocmd("FileType", {
         local ok, _ = pcall(vim.treesitter.language.inspect, lang)
         if ok then
             pcall(vim.treesitter.start, args.buf, lang)
+            vim.b[args.buf].ts_highlight_enabled = true
         end
     end,
 })

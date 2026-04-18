@@ -9,11 +9,8 @@ return {
         "pmouraguedes/neodarcula.nvim",
         lazy = false,
         priority = 1000,
-        config = function()
-            require("neodarcula").setup({
-                transparent = true, -- 启用透明背景（与 GeoVim 透明风格一致）
-                dim = false,        -- 不暗化非活动窗口
-            })
+        config = function(_, opts)
+            require("neodarcula").setup(opts)
             vim.cmd("colorscheme neodarcula")
 
             -- 透明背景下，强制关键高亮组背景透明

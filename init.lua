@@ -49,7 +49,7 @@ require("keymaps") -- 快捷键映射
 require("lazy").setup({
     spec = { import = "plugins" },
     defaults = { lazy = false, version = false },
-    install = { colorscheme = { "catppuccin" } },
+    install = { colorscheme = { "neodarcula" } },
     git = {
         timeout = 300, -- 拉取插件时进程超时时间（秒），应对国内网络较慢的情况
     },

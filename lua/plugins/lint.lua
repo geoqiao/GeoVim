@@ -22,12 +22,10 @@ return {
             }
 
             -- 让 luacheck 知道 Neovim 和 Love2D 的全局变量，避免误报
-            lint.linters.luacheck.args = {
-                unpack(lint.linters.luacheck.args or {}),
-                "--globals",
-                "vim",
-                "love",
-            }
+            lint.linters.luacheck.args = vim.iter({
+                lint.linters.luacheck.args or {},
+                { "--globals", "vim", "love" },
+            }):flatten():totable()
         end,
     },
 }

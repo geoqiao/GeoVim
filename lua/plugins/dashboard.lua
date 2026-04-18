@@ -24,6 +24,7 @@ return {
                 "Programming isn't about what you know; it's about what you can figure out. — Chris Pine",
                 "Any fool can write code that a computer can understand. Good programmers write code that humans can understand. — Martin Fowler",
             }
+            -- 初始化随机种子（LuaJIT 兼容；Lua 5.4 中 randomseed 行为不同但不影响此处）
             math.randomseed(os.time())
             local quote = quotes[math.random(#quotes)]
 

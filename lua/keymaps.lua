@@ -53,10 +53,12 @@ map("n", "<leader>bn", "<cmd> bnext <cr>", { desc = "下一个 Buffer" })
 map("n", "<leader>bp", "<cmd> bprevious <cr>", { desc = "上一个 Buffer" })
 map("n", "<leader>bd", "<cmd> bdelete <cr>", { desc = "关闭当前 Buffer" })
 map("n", "<leader>bD", function()
-    vim.cmd("%bdelete")
-    vim.cmd("edit #")
-    -- 恢复上一个 visual 选区的起始位置标记
-    vim.cmd("normal! `<")
+    local current = vim.api.nvim_get_current_buf()
+    for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+        if buf ~= current and vim.api.nvim_buf_is_loaded(buf) then
+            vim.api.nvim_buf_delete(buf, { force = false })
+        end
+    end
 end, { desc = "关闭其他所有 Buffer" })
 
 -- ============================================
