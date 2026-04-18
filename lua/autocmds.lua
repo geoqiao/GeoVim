@@ -136,7 +136,29 @@ autocmd("LspDetach", {
 })
 
 -- ============================================
--- 5. 离开 Insert 模式或保存后自动运行 linter
+-- 5. 自动启用 Treesitter 语法高亮
+-- ============================================
+-- nvim-treesitter v1.0+ 不再提供 highlight.enable 选项，
+-- Neovim 0.12+ 原生支持 treesitter 高亮，但需要手动调用 vim.treesitter.start() 启动。
+-- 这里通过 FileType 事件，为所有有对应 parser 的文件类型自动启用高亮。
+autocmd("FileType", {
+    group = augroup("treesitter_highlight", { clear = true }),
+    callback = function(args)
+        local ft = vim.bo[args.buf].filetype
+        local lang = vim.treesitter.language.get_lang(ft)
+        if not lang then
+            return
+        end
+        -- 检查 parser 是否已安装（避免报错）
+        local ok, _ = pcall(vim.treesitter.language.inspect, lang)
+        if ok then
+            pcall(vim.treesitter.start, args.buf, lang)
+        end
+    end,
+})
+
+-- ============================================
+-- 6. 离开 Insert 模式或保存后自动运行 linter
 -- ============================================
 autocmd({ "BufWritePost", "InsertLeave" }, {
     group = augroup("auto_lint", { clear = true }),
