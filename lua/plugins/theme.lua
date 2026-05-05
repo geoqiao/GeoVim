@@ -64,13 +64,13 @@ return {
             -- ============================================
             -- Alpha 启动屏配色（Aurora）
             -- ============================================
-            -- AlphaHeader        橙色加粗     logo 主体
-            -- AlphaTagline       次级灰斜体    "Code at the speed of thought"
-            -- AlphaSectionLabel  弱灰         "GET STARTED" / "TOOLS" 分组标题
-            -- AlphaButtons       品牌黄        按钮主 label
-            -- AlphaShortcut      chip 风格    暗灰文字 + 抬升面板背景，按钮右侧药丸
-            -- AlphaFooter        弱灰斜体     底部启动统计
-            vim.api.nvim_set_hl(0, "AlphaHeader", { fg = p.brand.orange, bg = "NONE", bold = true })
+            -- AlphaHeader        Normal 模式钢蓝   logo 主体（与 lualine normal 模式同色）
+            -- AlphaTagline       次级灰斜体        "Code at the speed of thought"
+            -- AlphaSectionLabel  弱灰              "GET STARTED" / "TOOLS" 分组标题
+            -- AlphaButtons       品牌黄            按钮主 label
+            -- AlphaShortcut      chip 风格        暗灰文字 + 抬升面板背景，按钮右侧药丸
+            -- AlphaFooter        弱灰斜体          底部启动统计
+            vim.api.nvim_set_hl(0, "AlphaHeader", { fg = p.mode.normal, bg = "NONE", bold = true })
             vim.api.nvim_set_hl(0, "AlphaTagline", { fg = p.fg.secondary, bg = "NONE", italic = true })
             vim.api.nvim_set_hl(0, "AlphaSectionLabel", { fg = p.fg.muted, bg = "NONE", bold = true })
             vim.api.nvim_set_hl(0, "AlphaButtons", { fg = p.brand.yellow, bg = "NONE" })
