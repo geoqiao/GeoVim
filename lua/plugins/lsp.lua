@@ -11,9 +11,19 @@
 return {
     {
         "neovim/nvim-lspconfig",
-        event = "VeryLazy",
+        event = { "BufReadPre", "BufNewFile" },
         dependencies = { "williamboman/mason-lspconfig.nvim" },
         config = function()
+            -- ============================================
+            -- 0. 把 blink.cmp 的能力注入所有 LSP server
+            -- ============================================
+            -- blink 比 Vim 内置 client 多支持 snippet、resolve 等高级特性，
+            -- 注入后所有 server 在补全时返回更丰富的 item。
+            local ok_blink, blink = pcall(require, "blink.cmp")
+            if ok_blink then
+                vim.lsp.config("*", { capabilities = blink.get_lsp_capabilities() })
+            end
+
             -- ============================================
             -- 1. Lua 语言服务器
             -- ============================================
