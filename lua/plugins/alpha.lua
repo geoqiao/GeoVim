@@ -99,6 +99,34 @@ return {
             dashboard.config.opts.noautocmd = true
 
             alpha.setup(dashboard.config)
+
+            -- ============================================
+            -- 目录启动时也显示 Alpha（NvChad / LazyVim 风格）
+            -- ============================================
+            -- 默认 alpha 只在 argc()==0 时展示。当用户 `nvim <dir>` 时，
+            -- netrw 会抢先接管 buffer，下面的 autocmd 把 cwd 切到该目录，
+            -- 关掉 netrw 列表，再调用 :Alpha 让欢迎页正常出现。
+            vim.api.nvim_create_autocmd("VimEnter", {
+                group = vim.api.nvim_create_augroup("alpha_on_dir", { clear = true }),
+                callback = function()
+                    if vim.fn.argc() ~= 1 then
+                        return
+                    end
+                    local target = vim.fn.argv(0)
+                    if vim.fn.isdirectory(target) ~= 1 then
+                        return
+                    end
+                    vim.cmd("silent! cd " .. vim.fn.fnameescape(target))
+                    vim.schedule(function()
+                        for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+                            if vim.api.nvim_buf_is_valid(buf) and vim.bo[buf].filetype == "netrw" then
+                                pcall(vim.api.nvim_buf_delete, buf, { force = true })
+                            end
+                        end
+                        pcall(vim.cmd, "Alpha")
+                    end)
+                end,
+            })
         end,
     },
 }
