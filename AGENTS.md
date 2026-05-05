@@ -12,7 +12,7 @@
 **核心语言**：Lua  
 **包管理器**：[lazy.nvim](https://github.com/folke/lazy.nvim)  
 **LSP 方案**：Neovim 0.12+ 原生 API（`vim.lsp.config` / `vim.lsp.enable`）  
-**代码补全**：原生 `vim.lsp.completion.enable()`（**未安装 nvim-cmp**）
+**代码补全**：[`saghen/blink.cmp`](https://github.com/saghen/blink.cmp)（Rust SIMD 模糊匹配，单插件方案）
 
 ---
 
@@ -25,25 +25,28 @@
 ├── .stylua.toml          -- Lua 代码格式化配置
 ├── lua/
 │   ├── options.lua       -- 编辑器基础选项（行号、缩进、主题、剪贴板等）
-│   ├── autocmds.lua      -- 自动命令（光标恢复、yank 高亮、LSP Attach、保存格式化等）
+│   ├── autocmds.lua      -- 自动命令（光标恢复、yank 高亮、LSP Attach、auto-lint 等）
 │   ├── keymaps.lua       -- 全局快捷键映射
-│   └── plugins/          -- 插件配置目录
-│       ├── init.lua      -- 插件总列表，仅包含 import 声明
-│       ├── theme.lua     -- 主题（Catppuccin frappe）
-│       ├── telescope.lua -- 模糊搜索
-│       ├── nvimtree.lua  -- 文件树
-│       ├── lualine.lua   -- 底部状态栏
-│       ├── bufferline.lua-- 顶部 Buffer 标签
-│       ├── treesitter.lua-- 语法高亮
-│       ├── mason.lua     -- LSP/格式化器/Linter 自动安装
-│       ├── lsp.lua       -- LSP 服务器配置（原生 API）
-│       ├── conform.lua   -- 代码格式化
-│       ├── lint.lua      -- 代码检查
-│       ├── gitsigns.lua  -- Git 增强
-│       ├── markdown.lua  -- Markdown 浏览器预览
-│       ├── comment.lua   -- 快速注释
-│       ├── dashboard.lua -- 启动页
-│       ├── whichkey.lua  -- 快捷键提示
+│   └── plugins/          -- 插件配置目录（lazy.nvim 通过 import = "plugins" 自动扫描全部 .lua 文件，**没有 init.lua**）
+│       ├── theme.lua       -- 主题（Neodarcula —— PyCharm Darcula 风格）
+│       ├── alpha.lua       -- 启动屏（ANSI Shadow GEOVIM logo）
+│       ├── telescope.lua   -- 模糊搜索
+│       ├── nvimtree.lua    -- 文件树
+│       ├── lualine.lua     -- 底部状态栏
+│       ├── bufferline.lua  -- 顶部 Buffer 标签
+│       ├── treesitter.lua  -- 语法高亮
+│       ├── mason.lua       -- LSP/格式化器/Linter 自动安装
+│       ├── lsp.lua         -- LSP 服务器配置（原生 API + blink capabilities 注入）
+│       ├── cmp.lua         -- blink.cmp 补全引擎
+│       ├── conform.lua     -- 代码格式化
+│       ├── lint.lua        -- 代码检查
+│       ├── gitsigns.lua    -- Git 增强
+│       ├── markdown.lua    -- Markdown 浏览器预览
+│       ├── comment.lua     -- 快速注释
+│       ├── whichkey.lua    -- 快捷键提示
+│       ├── autopairs.lua   -- 括号自动配对（mini.pairs）
+│       ├── image.lua       -- 终端图片预览（image.nvim）
+│       ├── noice.lua       -- 命令行 / 通知 UI
 │       └── claude-code.lua -- Claude Code 集成
 └── README.md / CLAUDE.md / MAINTENANCE.md / Neovim-guide.md
 ```
@@ -51,11 +54,11 @@
 **加载顺序**：
 1. `init.lua` 先确保 `lazy.nvim` 已安装；
 2. 按顺序 `require("options")` → `require("autocmds")` → `require("keymaps")`；
-3. 最后调用 `require("lazy").setup({ spec = { import = "plugins" } })`，lazy.nvim 会自动导入 `lua/plugins/` 下的所有 `.lua` 文件。
+3. 最后调用 `require("lazy").setup({ spec = { import = "plugins" }, defaults = { lazy = true } })`，lazy.nvim 会自动扫描 `lua/plugins/` 目录下的所有 `.lua` 文件作为独立 spec 注册。
 
 **插件组织约定**：
-- `lua/plugins/init.lua` 返回 import 列表，按优先级组织插件加载顺序，不写具体插件配置；
-- 每个插件或相关插件组拆分为独立文件，返回 lazy.nvim spec 表；
+- 不再使用 `lua/plugins/init.lua`，新增插件只需在 `lua/plugins/` 下放一个返回 lazy.nvim spec 的 `.lua` 文件即可。
+- 由于 `defaults = { lazy = true }`，每个 spec **必须**显式声明触发条件（`event` / `cmd` / `keys` / `ft`），否则会永远不被加载；UI 插件（主题等）需要 `lazy = false` + 高 `priority`。
 - 全局键位统一放在 `lua/keymaps.lua`；Buffer 级键位（LSP、Git 等）放在 `lua/autocmds.lua` 或对应插件的 `on_attach` 回调中。
 
 ---
@@ -159,7 +162,9 @@ Lua 代码统一使用 **StyLua** 格式化，配置见 `.stylua.toml`：
 
 ### 插件加载策略
 
-- 主题（`catppuccin`）和启动页（`dashboard-nvim`）设置 `lazy = false` 并赋予高 `priority`，确保在 UI 渲染前加载；
+- 主题（`neodarcula`）通过 `lazy = false` + `priority = 1000` 立即加载，确保 UI 渲染前主题已应用；
+- 启动屏（`alpha-nvim`）通过 `event = "VimEnter"` 在 Vim 入口触发；
+- `init.lua` 中已设 `defaults = { lazy = true }`，所有其它插件**必须**自带 `event` / `cmd` / `keys` / `ft` 触发器，否则不会加载；
 - 大部分 UI 插件使用 `event = "VeryLazy"` 延迟加载；
-- Treesitter、LSP、格式化、Lint 等使用 `BufReadPre` / `BufNewFile` 事件触发；
-- `init.lua` 的 `performance.rtp.disabled_plugins` 中禁用了大量内置冗余插件（如 `netrw`、`tutor`、`gzip` 等），以提升启动速度。
+- Treesitter、LSP、conform、lint 等使用 `BufReadPre` / `BufNewFile` 事件触发；
+- `init.lua` 的 `performance.rtp.disabled_plugins` 中禁用了大量内置冗余插件（如 `gzip`、`tutor`、`tar` 等），以提升启动速度；netrw 系列被故意保留，因为 `gx` 打开 URL 仍依赖它。

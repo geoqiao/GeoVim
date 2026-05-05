@@ -20,8 +20,12 @@ return {
 
             -- ============================================
             -- ASCII Logo（ANSI Shadow，与 NvChad/LazyVim 同款字体）
+            -- 上方 Zzz 飘浮符号是 LazyVim 标志性细节，营造"沉睡"氛围。
             -- ============================================
             dashboard.section.header.val = {
+                [[                                                  z]],
+                [[                                              z z]],
+                [[                                          z z z]],
                 [[ ██████╗ ███████╗ ██████╗ ██╗   ██╗██╗███╗   ███╗]],
                 [[██╔════╝ ██╔════╝██╔═══██╗██║   ██║██║████╗ ████║]],
                 [[██║  ███╗█████╗  ██║   ██║██║   ██║██║██╔████╔██║]],
@@ -31,16 +35,30 @@ return {
             }
 
             -- ============================================
-            -- 快捷按钮（完全保留 dashboard.lua 中的 e/f/r/g/l/m/q）
+            -- 双色按钮辅助函数（LazyVim 精修款）
+            -- ============================================
+            -- 标准 dashboard.button 把按键字符显示在右侧，色调单一。
+            -- 这里把右侧文字换成"提示串"（像 SPC ff），并用更暗的 AlphaShortcut
+            -- 高亮组绘制，让左侧 label 与右侧 hint 形成视觉层级。
+            local function button(sc, label, hint, action)
+                local btn = dashboard.button(sc, label, action)
+                btn.opts.shortcut = hint
+                btn.opts.hl_shortcut = "AlphaShortcut"
+                return btn
+            end
+
+            -- ============================================
+            -- 快捷按钮（hint 文本对齐到 keymaps.lua 中的实际 leader 绑定）
             -- ============================================
             dashboard.section.buttons.val = {
-                dashboard.button("e", "  New file", "<cmd>ene <BAR> startinsert<CR>"),
-                dashboard.button("f", "  Find file", "<cmd>Telescope find_files<CR>"),
-                dashboard.button("r", "  Recent files", "<cmd>Telescope oldfiles<CR>"),
-                dashboard.button("g", "  Find text", "<cmd>Telescope live_grep<CR>"),
-                dashboard.button("l", "󰒲  Lazy", "<cmd>Lazy<CR>"),
-                dashboard.button("m", "  Mason", "<cmd>Mason<CR>"),
-                dashboard.button("q", "  Quit", "<cmd>qa<CR>"),
+                button("f", "  Find File", "SPC ff", "<cmd>Telescope find_files<CR>"),
+                button("e", "  New File", ":enew", "<cmd>ene <BAR> startinsert<CR>"),
+                button("r", "  Recent Files", "SPC fo", "<cmd>Telescope oldfiles<CR>"),
+                button("g", "  Find Text", "SPC fw", "<cmd>Telescope live_grep<CR>"),
+                button("c", "  Config", ":e $MYVIMRC", "<cmd>edit $MYVIMRC<CR>"),
+                button("l", "󰒲  Lazy", ":Lazy", "<cmd>Lazy<CR>"),
+                button("m", "  Mason", ":Mason", "<cmd>Mason<CR>"),
+                button("q", "  Quit", ":qa", "<cmd>qa<CR>"),
             }
 
             -- ============================================
@@ -56,24 +74,14 @@ return {
                 return string.format("⚡ Loaded %d/%d plugins in %.2fms", stats.loaded, stats.count, ms)
             end
 
-            -- LazyVimStarted 时再写 footer，避免 startuptime 还没准备好
-            vim.api.nvim_create_autocmd("User", {
-                pattern = "LazyVimStarted",
-                once = true,
-                callback = function()
-                    dashboard.section.footer.val = footer()
-                    pcall(vim.cmd.AlphaRedraw)
-                end,
-            })
-            -- 兜底：VeryLazy 也触发一次（若 LazyVimStarted 没触发）
+            -- LazyVimStarted 事件只在 LazyVim 框架里触发；本配置不是 LazyVim,所以这里
+            -- 直接订阅 lazy.nvim 自己的 VeryLazy 事件,在 lazy 加载完所有插件后写入 footer。
             vim.api.nvim_create_autocmd("User", {
                 pattern = "VeryLazy",
                 once = true,
                 callback = function()
-                    if not dashboard.section.footer.val or dashboard.section.footer.val == "" then
-                        dashboard.section.footer.val = footer()
-                        pcall(vim.cmd.AlphaRedraw)
-                    end
+                    dashboard.section.footer.val = footer()
+                    pcall(vim.cmd.AlphaRedraw)
                 end,
             })
 

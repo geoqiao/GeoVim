@@ -12,7 +12,10 @@ return {
     {
         "neovim/nvim-lspconfig",
         event = { "BufReadPre", "BufNewFile" },
-        dependencies = { "williamboman/mason-lspconfig.nvim" },
+        -- blink.cmp 提供 capabilities;放进 dependencies 是为了保证在第一次 BufReadPre
+        -- 触发 LSP 初始化之前 blink.cmp 已 require,以便 vim.lsp.config('*') 注入到位。
+        -- mason-lspconfig 只做 ensure_installed,与 lsp.lua 之间没有显式依赖关系,这里不再列入。
+        dependencies = { "saghen/blink.cmp" },
         config = function()
             -- ============================================
             -- 0. 把 blink.cmp 的能力注入所有 LSP server

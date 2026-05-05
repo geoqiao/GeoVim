@@ -33,13 +33,14 @@ Since this is a Neovim config, there is no traditional build or test suite. Comm
 2. `lua/autocmds.lua` — autocommands (cursor restore, yank highlight, LSP attach, auto-lint)
 3. `lua/keymaps.lua` — all keymaps
 
-After the core modules, `init.lua` calls `require("lazy").setup({ spec = { import = "plugins" } })`, which causes lazy.nvim to automatically import **every** `.lua` file in `lua/plugins/`.
+After the core modules, `init.lua` calls `require("lazy").setup({ spec = { import = "plugins" } })`, which causes lazy.nvim to automatically import **every** `.lua` file in `lua/plugins/` via directory scan.
 
 ### Plugin Organization Pattern
 
-- `lua/plugins/init.lua` only contains `import = "plugins.xxx"` declarations. It does not configure plugins directly.
-- Each actual plugin lives in its own file under `lua/plugins/` (e.g. `telescope.lua`, `lsp.lua`, `conform.lua`).
-- Most plugin files return a lazy.nvim spec table. A few (like `claude-code.lua`) also define `keys = {}` inside the spec rather than in the global `keymaps.lua`.
+- **No `lua/plugins/init.lua`** — lazy.nvim's `import = "plugins"` walks the directory automatically. Adding a new file under `lua/plugins/` is the only step required to register a plugin.
+- Each plugin lives in its own file under `lua/plugins/` (e.g. `telescope.lua`, `lsp.lua`, `conform.lua`).
+- Most plugin files return a lazy.nvim spec table. Each spec MUST declare a lazy trigger (`event`, `cmd`, `keys`, `ft`, or explicit `lazy = false`) because the global `defaults = { lazy = true }` in `init.lua` will otherwise leave it un-loaded. UI plugins like the colorscheme pin themselves with `lazy = false, priority = 1000`.
+- A few plugins (like `claude-code.lua`) declare lazy `keys = {}` inside the spec rather than in the global `keymaps.lua`.
 
 ### LSP Architecture (Neovim 0.12+ Native API)
 
@@ -47,11 +48,11 @@ This config uses the **modern native LSP API**, not the classic `lspconfig` `set
 
 - Server configs are defined with `vim.lsp.config(name, opts)` in `lua/plugins/lsp.lua`.
 - Servers are enabled with `vim.lsp.enable(name)`.
-- **`mason-lspconfig` default handler** is enabled (calls `vim.lsp.enable(server_name)` on install), so newly installed LSPs start without requiring a restart.
+- **`mason-lspconfig` v2 schema:** the legacy `handlers = {}` field is gone; we use `automatic_enable = { exclude = { "pyright" } }` (see `lua/plugins/mason.lua`) so installed servers auto-enable except `pyright`, which would conflict with `ty` for Python.
 - **Buffer-local keymaps and capabilities** are wired in `lua/autocmds.lua` inside an `LspAttach` autocommand. This includes:
   - Navigation: `gd`, `gr`, `gi`, `K`, `gD`
   - Actions: `<leader>cr` (rename), `<leader>ca`, `<leader>ds`, `<leader>ws`
-  - Native autocompletion via `vim.lsp.completion.enable()` (no separate completion plugin)
+  - **Completion via `blink.cmp`** (`lua/plugins/cmp.lua`); `vim.lsp.config('*', { capabilities = blink.get_lsp_capabilities() })` is injected at the top of `lsp.lua`'s config function. There is no `vim.lsp.completion.enable` call anymore.
   - ESLint Fix All on save (for `client.name == "eslint"` only)
 - `LspDetach` autocmd cleans up buffer-local autocommands to prevent duplicates on `LspRestart`.
 
@@ -68,10 +69,10 @@ This config uses the **modern native LSP API**, not the classic `lspconfig` `set
 ### Linting Pipeline
 
 - **Linter:** `nvim-lint` (`lua/plugins/lint.lua`). Configured linters:
+  - Lua → `luacheck` (passing `--globals vim love`)
   - Python → `ruff`
   - SQL → `sqlfluff`
-  - ~~Lua → `luacheck`~~ (commented out because not installed)
-- **Auto-lint** runs on `BufWritePost` and `InsertLeave` only (NOT `BufEnter`), with a `pattern` filter to avoid running on irrelevant filetypes.
+- **Auto-lint** runs on `BufWritePost` and `InsertLeave` only (NOT `BufEnter`), with a `vim.list_contains` filetype filter (`lua | python | sql`) to avoid running on irrelevant filetypes.
 
 ### Keymap Design Philosophy
 

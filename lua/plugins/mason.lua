@@ -46,12 +46,11 @@ return {
                     "marksman", -- Markdown
                 },
                 automatic_installation = false,
-                automatic_enable = false,
-                handlers = {
-                    -- 所有 LSP 的 config() 和 enable() 统一在 lsp.lua 中管理，
-                    -- mason-lspconfig 只负责安装，不在这里启用，避免配置顺序冲突。
-                    -- 禁用 pyright，避免与 ty 冲突或重复启用：
-                    ["pyright"] = function() end,
+                -- mason-lspconfig v2 schema:用 automatic_enable 取代 v1 的 handlers。
+                -- 这里把所有 ensure_installed 的 server 默认交给 mason-lspconfig 自动 vim.lsp.enable(),
+                -- 只把 pyright 排除在外（避免与 ty 重复启动 Python 语言服务器）。
+                automatic_enable = {
+                    exclude = { "pyright" },
                 },
             })
         end,

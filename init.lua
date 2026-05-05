@@ -48,7 +48,8 @@ require("keymaps") -- 快捷键映射
 -- lazy.nvim 会自动读取 lua/plugins/ 目录下的所有 .lua 文件
 require("lazy").setup({
     spec = { import = "plugins" },
-    defaults = { lazy = false, version = false },
+    -- 默认让所有插件都按 event/cmd/keys 懒加载,UI 和主题会在自己的 spec 里显式 lazy = false。
+    defaults = { lazy = true, version = false },
     install = { colorscheme = { "neodarcula" } },
     git = {
         timeout = 300, -- 拉取插件时进程超时时间（秒），应对国内网络较慢的情况

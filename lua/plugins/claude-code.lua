@@ -10,6 +10,15 @@ return {
         "greggh/claude-code.nvim",
         dependencies = { "nvim-lua/plenary.nvim" },
         cmd = { "ClaudeCode", "ClaudeCodeContinue", "ClaudeCodeResume", "ClaudeCodeVerbose" },
+        -- 用 keys = {} 声明懒加载触发键,这样按 <leader>ac 时 lazy.nvim 才真正 require 插件,
+        -- 避免启动时就把 plenary / claude-code 全链路加载进来。插件自己的 setup() 会在加载后
+        -- 注册同名键位,覆盖这里的 stub。
+        keys = {
+            { "<leader>ac", "<cmd>ClaudeCode<cr>", desc = "切换 Claude Code 面板" },
+            { "<leader>aC", "<cmd>ClaudeCodeContinue<cr>", desc = "继续上次 Claude 对话" },
+            { "<leader>aR", "<cmd>ClaudeCodeResume<cr>", desc = "选择历史 Claude 对话" },
+            { "<leader>aV", "<cmd>ClaudeCodeVerbose<cr>", desc = "Claude Verbose 模式" },
+        },
         config = function()
             -- 如果系统未安装 claude 命令，给出提示并跳过配置
             if vim.fn.executable("claude") ~= 1 then
@@ -36,7 +45,8 @@ return {
                 -- 文件自动刷新：Claude Code 修改文件后，Neovim 自动重载
                 refresh = {
                     enable = true,
-                    updatetime = 100,
+                    -- 不再覆盖全局 updatetime（默认 4000ms 即可,timer_interval 已每 5s 主动轮询）。
+                    -- 早期版本默认 100ms 会拉低 CursorHold 触发阈值并增加 swap 写入频率,属于副作用。
                     timer_interval = 5000, -- 降低轮询频率，减少后台开销
                     show_notifications = false, -- 避免弹窗轰炸
                 },
@@ -60,6 +70,7 @@ return {
                         terminal = "<leader>ac",
                         variants = {
                             continue = "<leader>aC",
+                            resume = "<leader>aR",
                             verbose = "<leader>aV",
                         },
                     },

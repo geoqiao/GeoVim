@@ -22,7 +22,6 @@ return {
             },
 
             appearance = {
-                use_nvim_cmp_as_default = true, -- 沿用 nvim-cmp 高亮组，与 neodarcula 已有配色对得上
                 nerd_font_variant = "mono",
             },
 

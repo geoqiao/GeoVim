@@ -96,7 +96,8 @@ map("n", "<leader>cf", function()
         end
         return
     end
-    local success, err = pcall(conform.format, { async = true, lsp_fallback = true })
+    -- conform 0.7+ 已用 lsp_format = "fallback" 取代旧字段 lsp_fallback = true
+    local success, err = pcall(conform.format, { async = true, lsp_format = "fallback" })
     if not success then
         vim.notify("[GeoVim] 格式化失败: " .. tostring(err), vim.log.levels.ERROR)
     end
@@ -106,21 +107,18 @@ end, { desc = "格式化当前文件" })
 -- 八、诊断跳转（全局可用，不限于 LSP 场景）
 -- ============================================
 
+-- vim.diagnostic.goto_prev / goto_next 已在 Neovim 0.11 弃用，新 API 是 vim.diagnostic.jump。
+-- jump 内部带防御性检查，无需再用 pcall 包裹。
 map("n", "[d", function()
-    local ok, err = pcall(vim.diagnostic.goto_prev, { float = true })
-    if not ok then
-        vim.notify("[GeoVim] 诊断跳转失败: " .. tostring(err), vim.log.levels.WARN)
-    end
+    vim.diagnostic.jump({ count = -1, float = true })
 end, { desc = "上一个诊断" })
 
 map("n", "]d", function()
-    local ok, err = pcall(vim.diagnostic.goto_next, { float = true })
-    if not ok then
-        vim.notify("[GeoVim] 诊断跳转失败: " .. tostring(err), vim.log.levels.WARN)
-    end
+    vim.diagnostic.jump({ count = 1, float = true })
 end, { desc = "下一个诊断" })
 
-map("n", "<leader>d", vim.diagnostic.open_float, { desc = "查看当前诊断详情" })
+-- 用 <leader>de 代替原先的 <leader>d，避免 which-key 把 d 当作前缀组时与单动作冲突。
+map("n", "<leader>de", vim.diagnostic.open_float, { desc = "查看当前诊断详情" })
 
 -- ============================================
 -- 九、Markdown

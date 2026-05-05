@@ -28,11 +28,8 @@ autocmd("BufReadPost", {
 autocmd("TextYankPost", {
     group = augroup("highlight_yank", { clear = true }),
     callback = function()
-        -- 兼容 Neovim 0.10 ~ 0.12+ 的高亮 API
-        local ok = pcall(vim.hl.on_yank, { group = "IncSearch", timeout = 150 })
-        if not ok then
-            pcall(vim.highlight.on_yank, { higroup = "IncSearch", timeout = 150 })
-        end
+        -- Neovim 0.11+ 推荐 vim.hl.on_yank;参数名是 higroup（不是 group）。
+        vim.hl.on_yank({ higroup = "IncSearch", timeout = 150 })
     end,
 })
 
@@ -109,31 +106,12 @@ autocmd("LspDetach", {
 })
 
 -- ============================================
--- 5. 自动启用 Treesitter 语法高亮
+-- 5. Treesitter 高亮启动
 -- ============================================
--- nvim-treesitter v1.0+ 不再提供 highlight.enable 选项，
--- Neovim 0.12+ 原生支持 treesitter 高亮，但需要手动调用 vim.treesitter.start() 启动。
--- 这里通过 FileType 事件，为所有有对应 parser 的文件类型自动启用高亮。
-autocmd("FileType", {
-    group = augroup("treesitter_highlight", { clear = true }),
-    callback = function(args)
-        -- 避免对已启动的 buffer 重复调用
-        if vim.b[args.buf].ts_highlight_enabled then
-            return
-        end
-        local ft = vim.bo[args.buf].filetype
-        local lang = vim.treesitter.language.get_lang(ft)
-        if not lang then
-            return
-        end
-        -- 检查 parser 是否已安装（避免报错）
-        local ok, _ = pcall(vim.treesitter.language.inspect, lang)
-        if ok then
-            pcall(vim.treesitter.start, args.buf, lang)
-            vim.b[args.buf].ts_highlight_enabled = true
-        end
-    end,
-})
+-- 历史上这里有一个手写的 FileType 自动命令调用 vim.treesitter.start。
+-- 但 nvim-treesitter v1.0+ 的 main 分支已经在自身 plugin 里调用 vim.treesitter.start，
+-- 重复启动会导致 highlight 双重 attach。所以**统一交给 nvim-treesitter 自己处理**，
+-- 这里不再写额外的 autocmd（如需关闭某个文件类型，请在 treesitter.lua 的 highlight.disable 中配置）。
 
 -- ============================================
 -- 6. 离开 Insert 模式或保存后自动运行 linter
@@ -142,7 +120,7 @@ autocmd({ "BufWritePost", "InsertLeave" }, {
     group = augroup("auto_lint", { clear = true }),
     callback = function(args)
         local ft = vim.bo[args.buf].filetype
-        if not vim.tbl_contains({ "lua", "python", "sql" }, ft) then
+        if not vim.list_contains({ "lua", "python", "sql" }, ft) then
             return
         end
         local ok, lint = pcall(require, "lint")
