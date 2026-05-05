@@ -45,7 +45,29 @@ map("n", "<leader>ee", "<cmd> NvimTreeToggle <cr>", { desc = "显示/隐藏文�
 map("n", "<leader>eo", "<cmd> NvimTreeFocus <cr>", { desc = "聚焦文件树" })
 
 -- ============================================
--- 五、Buffer 管理
+-- 五、文件路径复制
+-- ============================================
+
+map("n", "<leader>cp", function()
+    local path = vim.fn.expand("%:p")
+    vim.fn.setreg("+", path)
+    vim.notify("已复制绝对路径: " .. path)
+end, { desc = "复制文件绝对路径" })
+
+map("n", "<leader>cP", function()
+    local path = vim.fn.expand("%")
+    vim.fn.setreg("+", path)
+    vim.notify("已复制相对路径: " .. path)
+end, { desc = "复制文件相对路径" })
+
+map("n", "<leader>cd", function()
+    local dir = vim.fn.expand("%:p:h")
+    vim.fn.setreg("+", dir)
+    vim.notify("已复制所在目录: " .. dir)
+end, { desc = "复制文件所在目录" })
+
+-- ============================================
+-- 六、Buffer 管理
 -- ============================================
 -- 使用 <leader>b 分组，恢复 H / L 的原生屏幕导航功能。
 
