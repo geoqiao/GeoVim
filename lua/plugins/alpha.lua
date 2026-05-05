@@ -1,8 +1,9 @@
 -- ============================================
--- Alpha：启动屏 / 欢迎页（替代 dashboard-nvim）
+-- Alpha：启动屏 / 欢迎页（Aurora 主题）
 -- ============================================
--- 设计参考：LazyVim 早期版本 + NvChad nvdash 的 ANSI Shadow 字体大字。
+-- 设计参考：LazyVim 的 ANSI Shadow 字体大字 + NvChad 的简洁分组。
 -- logo 字体与 NvChad/LazyVim 一致，只把 NEOVIM 换成 GEOVIM，保持视觉熟悉度。
+-- 在 logo 下方加 tagline，把按钮按"主操作 / 工具"分两组并用细分隔线分隔。
 --
 -- 显示场景：
 --   1. nvim（无参数）
@@ -20,7 +21,7 @@ return {
 
             -- ============================================
             -- ASCII Logo（ANSI Shadow，与 NvChad/LazyVim 同款字体）
-            -- 上方 Zzz 飘浮符号是 LazyVim 标志性细节，营造"沉睡"氛围。
+            -- 上方 z 飘浮符号是 LazyVim 标志性细节，营造"沉睡"氛围。
             -- ============================================
             dashboard.section.header.val = {
                 [[                                                  z]],
@@ -35,36 +36,65 @@ return {
             }
 
             -- ============================================
-            -- 双色按钮辅助函数（LazyVim 精修款）
+            -- 双色按钮辅助函数
             -- ============================================
-            -- 标准 dashboard.button 把按键字符显示在右侧，色调单一。
-            -- 这里把右侧文字换成"提示串"（像 SPC ff），并用更暗的 AlphaShortcut
-            -- 高亮组绘制，让左侧 label 与右侧 hint 形成视觉层级。
+            -- 让左侧 label 用 AlphaButtons（亮黄）、右侧 hint 用 AlphaShortcut
+            -- （chip 风格：暗灰文字 + 抬升面板背景），形成视觉层级。
+            -- hint 两侧加空格让背景扩展成"小药丸"形状。
             local function button(sc, label, hint, action)
                 local btn = dashboard.button(sc, label, action)
-                btn.opts.shortcut = hint
+                btn.opts.shortcut = " " .. hint .. " "
                 btn.opts.hl_shortcut = "AlphaShortcut"
                 return btn
             end
 
             -- ============================================
-            -- 快捷按钮（hint 文本对齐到 keymaps.lua 中的实际 leader 绑定）
+            -- 主操作按钮组（最常用）
             -- ============================================
-            dashboard.section.buttons.val = {
-                button("f", "  Find File", "SPC ff", "<cmd>Telescope find_files<CR>"),
-                button("e", "  New File", ":enew", "<cmd>ene <BAR> startinsert<CR>"),
-                button("r", "  Recent Files", "SPC fo", "<cmd>Telescope oldfiles<CR>"),
-                button("g", "  Find Text", "SPC fw", "<cmd>Telescope live_grep<CR>"),
-                button("c", "  Config", ":e $MYVIMRC", "<cmd>edit $MYVIMRC<CR>"),
-                button("l", "󰒲  Lazy", ":Lazy", "<cmd>Lazy<CR>"),
-                button("m", "  Mason", ":Mason", "<cmd>Mason<CR>"),
-                button("q", "  Quit", ":qa", "<cmd>qa<CR>"),
+            local buttons_primary = {
+                type = "group",
+                val = {
+                    button("f", "  Find File", "SPC ff", "<cmd>Telescope find_files<CR>"),
+                    button("r", "  Recent Files", "SPC fo", "<cmd>Telescope oldfiles<CR>"),
+                    button("g", "  Find Text", "SPC fw", "<cmd>Telescope live_grep<CR>"),
+                    button("e", "  New File", ":enew", "<cmd>ene <BAR> startinsert<CR>"),
+                    button("c", "  Config", ":cfg", "<cmd>edit $MYVIMRC<CR>"),
+                },
+                opts = { spacing = 1 },
             }
+
+            -- ============================================
+            -- 工具按钮组（管理 / 退出）
+            -- ============================================
+            local buttons_tools = {
+                type = "group",
+                val = {
+                    button("l", "󰒲  Lazy", ":Lazy", "<cmd>Lazy<CR>"),
+                    button("m", "  Mason", ":Mason", "<cmd>Mason<CR>"),
+                    button("q", "  Quit", ":qa", "<cmd>qa<CR>"),
+                },
+                opts = { spacing = 1 },
+            }
+
+            -- ============================================
+            -- 文本块：tagline / 分组标签 / 细分隔线
+            -- ============================================
+            local function text_block(value, hl)
+                return {
+                    type = "text",
+                    val = value,
+                    opts = { hl = hl, position = "center" },
+                }
+            end
+
+            local tagline = text_block("Code at the speed of thought", "AlphaTagline")
+            local label_started = text_block("─── GET STARTED ───", "AlphaSectionLabel")
+            local label_tools = text_block("───   TOOLS   ───", "AlphaSectionLabel")
 
             -- ============================================
             -- Footer：启动统计（loaded plugins + startup time）
             -- ============================================
-            local function footer()
+            local function footer_text()
                 local lazy_ok, lazy = pcall(require, "lazy")
                 if not lazy_ok then
                     return "GeoVim — Code at the speed of thought"
@@ -80,27 +110,34 @@ return {
                 pattern = "VeryLazy",
                 once = true,
                 callback = function()
-                    dashboard.section.footer.val = footer()
+                    dashboard.section.footer.val = footer_text()
                     pcall(vim.cmd.AlphaRedraw)
                 end,
             })
 
             -- ============================================
-            -- 高亮组（具体颜色在 theme.lua 中按 Neodarcula 配色定义）
+            -- 高亮组（具体颜色在 theme.lua 中按 Aurora 调色板定义）
             -- ============================================
             dashboard.section.header.opts.hl = "AlphaHeader"
-            dashboard.section.buttons.opts.hl = "AlphaButtons"
             dashboard.section.footer.opts.hl = "AlphaFooter"
 
             -- ============================================
-            -- 布局：padding → header → padding → buttons → padding → footer
+            -- 布局：logo → tagline → 主操作组 → 分隔 → 工具组 → footer
             -- ============================================
             dashboard.config.layout = {
                 { type = "padding", val = 2 },
                 dashboard.section.header,
-                { type = "padding", val = 2 },
-                dashboard.section.buttons,
                 { type = "padding", val = 1 },
+                tagline,
+                { type = "padding", val = 2 },
+                label_started,
+                { type = "padding", val = 1 },
+                buttons_primary,
+                { type = "padding", val = 1 },
+                label_tools,
+                { type = "padding", val = 1 },
+                buttons_tools,
+                { type = "padding", val = 2 },
                 dashboard.section.footer,
             }
 
