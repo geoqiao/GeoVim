@@ -31,8 +31,8 @@ return {
     -- Markdown 支持
     { import = "plugins.markdown" },
 
-    -- 启动页
-    { import = "plugins.dashboard" },
+    -- 启动屏
+    { import = "plugins.alpha" },
 
     -- 快速注释（VSCode 式 Ctrl+/）
     { import = "plugins.comment" },

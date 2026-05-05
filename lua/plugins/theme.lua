@@ -41,18 +41,24 @@ return {
                 "NvimTreeNormal",
                 "NvimTreeNormalNC",
                 "NvimTreeWinSeparator",
-                -- Dashboard 区域
-                "DashboardHeader",
-                "DashboardCenter",
-                "DashboardFooter",
-                "DashboardProjectTitle",
-                "DashboardProjectIcon",
-                "DashboardMruTitle",
-                "DashboardShortCut",
+                -- Alpha 启动屏区域
+                "AlphaHeader",
+                "AlphaButtons",
+                "AlphaFooter",
             }
             for _, group in ipairs(transparent_groups) do
                 vim.api.nvim_set_hl(0, group, { bg = "NONE" })
             end
+
+            -- ============================================
+            -- Alpha 启动屏配色（搭配 Neodarcula 橙黄色调）
+            -- ============================================
+            -- AlphaHeader  橙色 #CC7832（Darcula 关键字色）
+            -- AlphaButtons 黄色 #FFC66D（Darcula 函数色）
+            -- AlphaFooter  灰色 #808080（低调说明）
+            vim.api.nvim_set_hl(0, "AlphaHeader", { fg = "#CC7832", bg = "NONE", bold = true })
+            vim.api.nvim_set_hl(0, "AlphaButtons", { fg = "#FFC66D", bg = "NONE" })
+            vim.api.nvim_set_hl(0, "AlphaFooter", { fg = "#808080", bg = "NONE", italic = true })
         end,
     },
 }
