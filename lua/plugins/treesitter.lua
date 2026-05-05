@@ -60,6 +60,23 @@ return {
             if #to_install > 0 then
                 require("nvim-treesitter").install(to_install)
             end
+
+            -- ============================================
+            -- 启动 Treesitter 高亮
+            -- ============================================
+            -- nvim-treesitter v1.0+ (main 分支) 不再通过 configs.setup 启用高亮，
+            -- 需要手动在 FileType 事件中调用 vim.treesitter.start()。
+            -- 用 pcall 包裹：若某文件类型无 parser，静默跳过，不报错。
+            vim.api.nvim_create_autocmd("FileType", {
+                group = vim.api.nvim_create_augroup("treesitter_highlight", { clear = true }),
+                callback = function(args)
+                    local ok = pcall(vim.treesitter.start, args.buf)
+                    if not ok then
+                        -- 该文件类型无 parser，回退到 Vim 原生语法高亮
+                        vim.bo[args.buf].syntax = vim.bo[args.buf].filetype
+                    end
+                end,
+            })
         end,
     },
 }

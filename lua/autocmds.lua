@@ -108,10 +108,10 @@ autocmd("LspDetach", {
 -- ============================================
 -- 5. Treesitter 高亮启动
 -- ============================================
--- 历史上这里有一个手写的 FileType 自动命令调用 vim.treesitter.start。
--- 但 nvim-treesitter v1.0+ 的 main 分支已经在自身 plugin 里调用 vim.treesitter.start，
--- 重复启动会导致 highlight 双重 attach。所以**统一交给 nvim-treesitter 自己处理**，
--- 这里不再写额外的 autocmd（如需关闭某个文件类型，请在 treesitter.lua 的 highlight.disable 中配置）。
+-- Treesitter 高亮启动逻辑已迁移至 lua/plugins/treesitter.lua 的 config 函数中，
+-- 通过 FileType autocmd 统一调用 vim.treesitter.start()。
+-- 注意：nvim-treesitter v1.0+ (main 分支) 的 plugin 文件并不会自动启动高亮，
+-- 必须由用户显式配置。详见 treesitter.lua 中的实现与注释。
 
 -- ============================================
 -- 6. 离开 Insert 模式或保存后自动运行 linter
