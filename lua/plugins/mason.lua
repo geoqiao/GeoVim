@@ -66,7 +66,9 @@ return {
                 ensure_installed = {
                     -- Lua
                     "stylua",
-                    "luacheck",
+                    -- 注:luacheck 改用 `brew install luacheck` 安装(依赖 lua@5.4)。
+                    -- Mason 的 luarocks 通道默认对 Lua 5.5,而 luacheck 1.1.0 在 5.5 下因
+                    -- `<const>` 语义变更会运行时崩溃,所以这里不再让 Mason 管理它。
                     -- Python
                     "ruff",
                     -- Web

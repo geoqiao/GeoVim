@@ -25,7 +25,9 @@ return {
             lint.linters.luacheck.args = vim.iter({
                 lint.linters.luacheck.args or {},
                 { "--globals", "vim", "love" },
-            }):flatten():totable()
+            })
+                :flatten()
+                :totable()
         end,
     },
 }
