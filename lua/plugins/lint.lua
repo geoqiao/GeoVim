@@ -28,6 +28,15 @@ return {
             })
                 :flatten()
                 :totable()
+
+            -- SQLFluff 使用 Spark SQL 配置文件，与 format 保持一致
+            lint.linters.sqlfluff.args = {
+                "lint",
+                "--config",
+                vim.fn.expand("~/.config/nvim/sqlfluff-sparksql.cfg"),
+                "--format=json",
+                "-",
+            }
         end,
     },
 }

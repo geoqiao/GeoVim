@@ -84,12 +84,25 @@ return {
                 "jsonls",
                 "yamlls",
                 "marksman",
-                "sqlls",
             }
             for _, name in ipairs(simple_lsps) do
                 vim.lsp.config(name, { root_markers = { ".git" } })
                 vim.lsp.enable(name)
             end
+
+            -- ============================================
+            -- SQL 语言服务器（单独配置）
+            -- ============================================
+            -- sqlls 内置的 sqlint 诊断规则与 SQLFluff 风格冲突，
+            -- 禁用其诊断发布，统一由 nvim-lint + sqlfluff 管理。
+            -- 保留补全、hover、go-to-definition 等其他 LSP 能力。
+            vim.lsp.config("sqlls", {
+                root_markers = { ".git" },
+                handlers = {
+                    ["textDocument/publishDiagnostics"] = function() end,
+                },
+            })
+            vim.lsp.enable("sqlls")
 
             -- ============================================
             -- 6. ESLint (LSP 模式)

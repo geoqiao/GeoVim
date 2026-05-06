@@ -11,7 +11,6 @@ return {
         config = function()
             -- 检测当前项目是否使用 uv 作为包管理器
             local use_uv = vim.fn.executable("uv") == 1
-            local util = require("conform.util")
 
             require("conform").setup({
                 -- 按文件类型指定使用哪个格式化器
@@ -61,10 +60,10 @@ return {
                         require_cwd = false,
                         args = {
                             "fix",
-                            "--dialect=ansi",
+                            "--config",
+                            vim.fn.expand("~/.config/nvim/sqlfluff-sparksql.cfg"),
                             "-",
                         },
-                        cwd = util.root_file({ ".sqlfluff", "pyproject.toml", "setup.cfg" }),
                     },
                 },
 
@@ -73,7 +72,7 @@ return {
                     if vim.g.disable_autoformat or vim.b[bufnr].disable_autoformat then
                         return
                     end
-                    return { timeout_ms = 2000, lsp_format = "fallback" }
+                    return { timeout_ms = 10000, lsp_format = "fallback" }
                 end,
 
                 log_level = vim.log.levels.WARN,
