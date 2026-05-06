@@ -21,7 +21,7 @@ return {
                         ["vim.lsp.util.stylize_markdown"] = true,
                     },
                     hover = { enabled = true },
-                    signature = { enabled = true },
+                    signature = { enabled = false },
                 },
                 presets = {
                     bottom_search = true, -- 搜索框放底部（像 VSCode）

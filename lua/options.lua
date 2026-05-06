@@ -17,9 +17,7 @@ o.tabstop = 4 -- 显示一个 Tab 字符的宽度
 o.softtabstop = 4 -- 在 Insert 模式下按 Tab 时，感觉上也是 4 个空格
 o.expandtab = true -- 按键入 Tab 时，实际插入的是"空格"而不是真正的 Tab 字符
 -- Treesitter 已提供基于语法树的精准缩进，关闭 Vim 原生 smartindent 避免冲突
--- 保留 autoindent 让新行继承缩进级别，具体缩进量由 Treesitter 决定
 o.smartindent = false
-o.autoindent = true -- 新行继承上一行的缩进
 
 -- ============================================
 -- 二、界面显示
@@ -44,8 +42,6 @@ o.showmode = false -- 不显示 -- INSERT -- 等模式提示（状态栏插件�
 
 o.ignorecase = true -- 搜索时默认忽略大小写
 o.smartcase = true -- 但如果搜索词里包含大写字母，则变为大小写敏感
-o.hlsearch = true -- 高亮所有匹配结果
-o.incsearch = true -- 边输入边实时显示匹配结果
 o.inccommand = "split" -- :%s 替换时，在底部小窗口实时预览效果
 
 -- ============================================
@@ -74,12 +70,7 @@ o.splitbelow = true -- 水平分割新窗口时，出现在下方
 o.splitright = true -- 垂直分割新窗口时，出现在右方
 
 -- ============================================
--- 七、代码补全菜单
--- ============================================
-opt.completeopt = { "menu", "menuone", "noinsert" }
-
--- ============================================
--- 八、诊断显示样式（尽早生效，不限于 LSP 场景）
+-- 七、诊断显示样式（尽早生效，不限于 LSP 场景）
 -- ============================================
 vim.diagnostic.config({
     virtual_text = true, -- 在行尾显示简短错误信息
@@ -104,5 +95,5 @@ opt.foldlevel = 99
 -- ============================================
 -- 十、编码与语言
 -- ============================================
-o.fileencoding = "utf-8" -- 默认使用 UTF-8 编码保存文件
-o.conceallevel = 0 -- 不要隐藏任何字符（比如 Markdown 的链接标记）
+-- Neovim 默认使用 UTF-8 编码，无需显式设置
+-- conceallevel 默认为 0，无需显式设置

@@ -13,9 +13,6 @@ return {
                 preset = "modern",
                 delay = 250, -- 按键后 250ms 再弹出提示
                 -- timeoutlen 已在 options.lua 中设置，此处无需重复
-                triggers = {
-                    { "<auto>", mode = "nixsotc" },
-                },
                 icons = {
                     mappings = false, -- 不使用图标，纯文字对新手更直观
                 },
