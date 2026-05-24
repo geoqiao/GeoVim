@@ -58,12 +58,18 @@ return {
                     },
                     sqlfluff = {
                         require_cwd = false,
-                        args = {
-                            "fix",
-                            "--config",
-                            vim.fn.expand("~/.config/nvim/sqlfluff-sparksql.cfg"),
-                            "-",
-                        },
+                        args = function(self, ctx)
+                            local cfg = vim.fn.expand("~/.config/nvim/sqlfluff-sparksql.cfg")
+                            if vim.fn.filereadable(cfg) ~= 1 then
+                                vim.notify("[GeoVim] SQLFluff 配置文件未找到: " .. cfg, vim.log.levels.WARN)
+                            end
+                            return {
+                                "fix",
+                                "--config",
+                                cfg,
+                                "-",
+                            }
+                        end,
                     },
                 },
 

@@ -30,6 +30,7 @@ return {
                 { "<leader>g", group = "Git" },
                 { "<leader>m", group = "Markdown" },
                 { "<leader>s", group = "Split" },
+                { "<leader>x", group = "Trouble / Lists" },
                 { "<leader>y", group = "System Clipboard" },
             })
         end,

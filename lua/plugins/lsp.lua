@@ -55,6 +55,8 @@ return {
             -- 2. Python (ty)
             -- ============================================
             -- ty 自动检测项目根目录下的 .venv，无需手动注入 pythonPath。
+            -- 注意：ty 0.0.x 为早期版本，存在已知的服务器崩溃问题。
+            -- 如果频繁遇到 -32602 错误，建议暂时切换到 basedpyright。
             vim.lsp.config("ty", {
                 root_markers = {
                     "pyproject.toml",
@@ -63,6 +65,12 @@ return {
                     "setup.cfg",
                     "requirements.txt",
                     ".git",
+                },
+                settings = {
+                    ty = {
+                        diagnosticMode = "openFilesOnly",
+                        showSyntaxErrors = true,
+                    },
                 },
             })
             vim.lsp.enable("ty")
@@ -76,18 +84,18 @@ return {
             vim.lsp.enable("ts_ls")
 
             -- ============================================
-            -- 5. 配置简单的 LSP 服务器（仅 root_markers 不同）
+            -- 5. 配置简单的 LSP 服务器（root_markers 按语言适配）
             -- ============================================
             local simple_lsps = {
-                "html",
-                "cssls",
-                "jsonls",
-                "yamlls",
-                "marksman",
+                { name = "html", root = { "package.json", ".git" } },
+                { name = "cssls", root = { "package.json", ".git" } },
+                { name = "jsonls", root = { ".git" } },
+                { name = "yamlls", root = { ".git" } },
+                { name = "marksman", root = { ".git" } },
             }
-            for _, name in ipairs(simple_lsps) do
-                vim.lsp.config(name, { root_markers = { ".git" } })
-                vim.lsp.enable(name)
+            for _, ls in ipairs(simple_lsps) do
+                vim.lsp.config(ls.name, { root_markers = ls.root })
+                vim.lsp.enable(ls.name)
             end
 
             -- ============================================

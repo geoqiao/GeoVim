@@ -49,8 +49,11 @@ return {
                 "comment",
             }
 
-            -- 自动安装缺失的 parser（仅检查一次，避免每次启动都执行）
-            local installed = require("nvim-treesitter.config").get_installed("parsers")
+            -- 自动安装缺失的 parser（兼容 v1.0+ API，用 pcall 避免 API 变更导致报错）
+            local installed = {}
+            pcall(function()
+                installed = require("nvim-treesitter").get_installed("parsers") or {}
+            end)
             local to_install = {}
             for _, lang in ipairs(ensure_installed) do
                 if not vim.list_contains(installed, lang) then

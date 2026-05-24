@@ -30,10 +30,14 @@ return {
                 :totable()
 
             -- SQLFluff 使用 Spark SQL 配置文件，与 format 保持一致
+            local sqlfluff_cfg = vim.fn.expand("~/.config/nvim/sqlfluff-sparksql.cfg")
+            if vim.fn.filereadable(sqlfluff_cfg) ~= 1 then
+                vim.notify("[GeoVim] SQLFluff 配置文件未找到: " .. sqlfluff_cfg, vim.log.levels.WARN)
+            end
             lint.linters.sqlfluff.args = {
                 "lint",
                 "--config",
-                vim.fn.expand("~/.config/nvim/sqlfluff-sparksql.cfg"),
+                sqlfluff_cfg,
                 "--format=json",
                 "-",
             }
