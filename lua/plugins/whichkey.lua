@@ -29,6 +29,7 @@ return {
                 { "<leader>f", group = "Find / Search" },
                 { "<leader>g", group = "Git" },
                 { "<leader>m", group = "Markdown" },
+                { "<leader>p", group = "Pi" },
                 { "<leader>s", group = "Split" },
                 { "<leader>x", group = "Trouble / Lists" },
                 { "<leader>y", group = "System Clipboard" },
