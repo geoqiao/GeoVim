@@ -414,13 +414,13 @@ Pi 需要在另一个终端运行，并在 Pi 侧安装 `pi-nvim` extension。
 
 ### Markdown 与图片
 
-| 操作           | 作用                                  |
-| -------------- | ------------------------------------- |
-| `<leader>mp`   | 在浏览器中实时预览 Markdown           |
-| 光标移动到图片 | 在 Markdown 中通过 Sixel 弹出图片预览 |
-| 直接打开图片   | 支持 PNG、JPEG、GIF、WebP、AVIF       |
+| 操作           | 作用                                      |
+| -------------- | ----------------------------------------- |
+| `<leader>mp`   | 在浏览器中实时预览 Markdown               |
+| 光标移动到图片 | 在 Markdown 中通过 Kitty 协议弹出图片预览 |
+| 直接打开图片   | 支持 PNG、JPEG、GIF、WebP、AVIF           |
 
-图片预览需要支持 Sixel 的终端，以及启用了 Sixel 格式的 ImageMagick。
+图片预览需要支持 Kitty Graphics Protocol 的终端和 ImageMagick CLI。当前配置针对 Ghostty；不要切换到 Sixel，因为 Ghostty 不支持该协议。
 
 ---
 

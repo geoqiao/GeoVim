@@ -107,7 +107,7 @@ nvim --headless -u ./init.lua +qa
 - LSP：`:LspInfo`
 - Formatter：`:ConformInfo` 并检查格式化后的文件
 - 插件触发：确认首次按键/命令能从未加载状态启动插件
-- 图片：在支持 Sixel 的真实终端中验证
+- 图片：在支持 Kitty Graphics Protocol 的真实终端中验证
 - 最终运行 `:checkhealth`
 
 ## 常见排查
@@ -132,9 +132,9 @@ nvim --headless -u ./init.lua +qa
 
 ### 图片不显示
 
-1. `magick -list format | grep -i sixel` 确认 ImageMagick 支持 Sixel。
-2. 确认终端支持 Sixel；当前配置针对 Ghostty。
-3. 在 Markdown 或直接打开 PNG/JPEG 文件以触发 image.nvim。
+1. `magick -version` 确认 ImageMagick CLI 可用。
+2. 确认终端支持 Kitty Graphics Protocol；当前配置针对 Ghostty，Ghostty 不支持 Sixel。
+3. 在 Markdown 或直接打开 PNG/JPEG 文件以触发 image.nvim，并确认彩色图片实际可见。
 
 ### 主题启动闪烁
 

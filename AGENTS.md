@@ -47,7 +47,7 @@
 │       ├── surround.lua    -- 成对符号编辑（mini.surround）
 │       ├── trouble.lua     -- 诊断 / 符号 / Quickfix 聚合面板
 │       ├── todo-comments.lua -- TODO / FIXME 高亮
-│       ├── image.lua       -- 终端图片预览（image.nvim + Sixel）
+│       ├── image.lua       -- 终端图片预览（image.nvim + Kitty Graphics Protocol）
 │       ├── noice.lua       -- 命令行 / 通知 UI
 │       ├── claude-code.lua -- Claude Code 集成
 │       └── pi-nvim.lua     -- pi coding agent 集成

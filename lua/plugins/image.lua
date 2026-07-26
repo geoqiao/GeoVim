@@ -1,13 +1,9 @@
 -- ============================================
 -- Image：在 Neovim 中显示图片
 -- ============================================
--- Ghostty 1.3.1 的 Kitty Graphics Protocol 实现有已知缺陷：
--- - "normal" 模式：完全不显示
--- - "unicode-placeholders" 模式：显示黑色方块
--- 根因不在 Neovim 配置，而在 Ghostty 对 Kitty 协议的渲染实现。
---
--- 解决方案：改用 sixel backend。Ghostty 对 Sixel 的支持更成熟稳定。
--- 已验证 ImageMagick 支持 Sixel 格式输出（magick -list format | grep sixel）。
+-- Ghostty 不支持 Sixel，只支持 Kitty Graphics Protocol。
+-- 使用 normal placement，避免 unicode-placeholders 在部分 Ghostty 版本中的尺寸问题。
+-- processor 使用 ImageMagick CLI，无需安装 LuaRock。
 
 return {
     {
@@ -21,8 +17,9 @@ return {
         },
         config = function()
             require("image").setup({
-                backend = "sixel",
+                backend = "kitty",
                 processor = "magick_cli",
+                kitty_method = "normal",
                 hijack_file_patterns = { "*.png", "*.jpg", "*.jpeg", "*.gif", "*.webp", "*.avif" },
                 max_width_window_percentage = 100,
                 max_height_window_percentage = 90,

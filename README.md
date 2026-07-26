@@ -53,8 +53,8 @@
 按功能可选：
 
 - Nerd Font（图标）
-- ImageMagick，且需支持 Sixel（image.nvim）
-- 支持 Sixel 的终端；当前配置针对 Ghostty
+- ImageMagick CLI（image.nvim 的图片处理器）
+- 支持 Kitty Graphics Protocol 的终端；当前配置针对 Ghostty
 - `claude` CLI（Claude Code）
 - `pi` CLI，并在 pi 侧安装 `pi-nvim` extension
 - Homebrew `luacheck`（Lua lint）
