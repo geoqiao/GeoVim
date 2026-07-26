@@ -16,7 +16,7 @@ o.shiftwidth = 4
 o.tabstop = 4 -- 显示一个 Tab 字符的宽度
 o.softtabstop = 4 -- 在 Insert 模式下按 Tab 时，感觉上也是 4 个空格
 o.expandtab = true -- 按键入 Tab 时，实际插入的是"空格"而不是真正的 Tab 字符
--- Treesitter 已提供基于语法树的精准缩进，关闭 Vim 原生 smartindent 避免冲突
+-- 缩进由各语言 ftplugin / indentexpr 负责，关闭通用 smartindent 避免规则叠加
 o.smartindent = false
 
 -- ============================================
@@ -49,9 +49,9 @@ o.inccommand = "split" -- :%s 替换时，在底部小窗口实时预览效果
 -- ============================================
 
 o.undofile = true -- 即使关闭文件再打开，也能按 u 撤销之前的修改
-o.backup = false -- 不创建 ~ 结尾的备份文件
-o.writebackup = false -- 写入时不创建临时备份
-o.swapfile = false -- 不创建 .swp 交换文件（现代系统很少崩溃，可以关掉）
+o.backup = false -- 不保留 ~ 结尾的长期备份文件
+o.writebackup = true -- 写入过程中保留临时备份，避免写入中断损坏原文件
+o.swapfile = true -- 保留崩溃恢复和并发编辑检测能力
 o.updatetime = 250 -- 光标停止移动后 250ms 触发自动保存 / 诊断刷新等
 o.timeoutlen = 500 -- 按组合键时，等待下一个按键的最长时间
 

@@ -9,6 +9,21 @@ return {
         event = "VeryLazy",
         dependencies = { "nvim-tree/nvim-web-devicons" },
         config = function()
+            local function delete_buffer(bufnr)
+                if not vim.api.nvim_buf_is_valid(bufnr) then
+                    return
+                end
+                if vim.bo[bufnr].modified then
+                    vim.notify("[GeoVim] Buffer 尚未保存，未执行关闭", vim.log.levels.WARN)
+                    return
+                end
+
+                local ok, err = pcall(vim.api.nvim_buf_delete, bufnr, { force = false })
+                if not ok then
+                    vim.notify("[GeoVim] Buffer 关闭失败: " .. tostring(err), vim.log.levels.WARN)
+                end
+            end
+
             require("bufferline").setup({
                 highlights = {
                     fill = { bg = "NONE" },
@@ -41,9 +56,9 @@ return {
                 options = {
                     -- 使用 Neovim 内置的缓冲区编号作为标签名
                     numbers = "ordinal",
-                    -- 关闭按钮显示在右侧
-                    close_command = "bdelete! %d",
-                    right_mouse_command = "bdelete! %d",
+                    -- 关闭按钮显示在右侧；未保存的 Buffer 必须先保存或显式放弃修改
+                    close_command = delete_buffer,
+                    right_mouse_command = delete_buffer,
                     -- 标签页过多时的显示模式
                     offsets = {
                         {
