@@ -24,9 +24,11 @@ return {
         -- 用 keys = {} 声明懒加载触发键，按下时 lazy.nvim 才真正 require 插件，
         -- 避免启动时就把 pi-nvim 加载进来。插件加载后会创建同名 user command。
         keys = {
-            { "<leader>pp", "<cmd>Pi<cr>", desc = "Pi: 发送对话框", mode = { "n", "v" } },
+            { "<leader>pp", "<cmd>Pi<cr>", desc = "Pi: 发送对话框" },
+            -- Visual 模式必须通过 : 命令离开选区，让 Neovim 写入 '< 和 '> marks 并传递 command range。
+            { "<leader>pp", ":Pi<cr>", desc = "Pi: 发送选区对话框", mode = "v" },
             { "<leader>pf", "<cmd>PiSendFile<cr>", desc = "Pi: 发送当前文件" },
-            { "<leader>ps", "<cmd>PiSendSelection<cr>", desc = "Pi: 发送选区", mode = "v" },
+            { "<leader>ps", ":PiSendSelection<cr>", desc = "Pi: 发送选区", mode = "v" },
             { "<leader>pb", "<cmd>PiSendBuffer<cr>", desc = "Pi: 发送整个 buffer" },
             { "<leader>pi", "<cmd>PiPing<cr>", desc = "Pi: 检查连接" },
             { "<leader>pS", "<cmd>PiSessions<cr>", desc = "Pi: 列出 / 切换 session" },

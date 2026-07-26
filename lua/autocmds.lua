@@ -90,7 +90,12 @@ autocmd("LspAttach", {
             autocmd("BufWritePre", {
                 group = augroup("eslint_fix_" .. bufnr, { clear = true }),
                 buffer = bufnr,
-                command = "EslintFixAll",
+                callback = function()
+                    -- 命令由 nvim-lspconfig 的 eslint on_attach 创建；若上游 API 变化则安全跳过，不能阻断保存。
+                    if vim.fn.exists(":LspEslintFixAll") == 2 then
+                        vim.cmd.LspEslintFixAll()
+                    end
+                end,
             })
         end
     end,
@@ -100,7 +105,12 @@ autocmd("LspAttach", {
 autocmd("LspDetach", {
     group = augroup("lsp_detach", { clear = true }),
     callback = function(args)
-        -- 清理该 buffer 上由 eslint_fix_<bufnr> 组创建的 BufWritePre 自动命令
+        local client = vim.lsp.get_client_by_id(args.data.client_id)
+        if not client or client.name ~= "eslint" then
+            return
+        end
+
+        -- 只有 ESLint 自身断开时才清理，避免 ts_ls 等其他 client 离开后误删保存修复。
         pcall(vim.api.nvim_clear_autocmds, { buffer = args.buf, group = "eslint_fix_" .. args.buf })
     end,
 })
