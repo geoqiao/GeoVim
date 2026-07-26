@@ -12,7 +12,13 @@
 return {
     {
         "3rd/image.nvim",
-        event = "VeryLazy",
+        ft = { "markdown", "vimwiki" },
+        event = {
+            {
+                event = "BufReadPre",
+                pattern = { "*.png", "*.jpg", "*.jpeg", "*.gif", "*.webp", "*.avif" },
+            },
+        },
         config = function()
             require("image").setup({
                 backend = "sixel",

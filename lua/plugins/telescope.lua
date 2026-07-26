@@ -7,7 +7,7 @@
 return {
     {
         "nvim-telescope/telescope.nvim",
-        event = "VeryLazy",
+        cmd = "Telescope",
         dependencies = {
             -- Telescope 依赖的工具库
             "nvim-lua/plenary.nvim",

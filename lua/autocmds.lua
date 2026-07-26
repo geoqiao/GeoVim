@@ -124,8 +124,9 @@ autocmd("LspDetach", {
 -- 必须由用户显式配置。详见 treesitter.lua 中的实现与注释。
 
 -- ============================================
--- 6. 离开 Insert 模式或保存后自动运行 linter
+-- 6. 自动运行 linter
 -- ============================================
+-- Lua / Python 在离开 Insert 模式或保存后检查；SQLFluff 较重，仅在保存后运行。
 autocmd({ "BufWritePost", "InsertLeave" }, {
     group = augroup("auto_lint", { clear = true }),
     callback = function(args)
@@ -133,6 +134,10 @@ autocmd({ "BufWritePost", "InsertLeave" }, {
         if not vim.list_contains({ "lua", "python", "sql" }, ft) then
             return
         end
+        if ft == "sql" and args.event == "InsertLeave" then
+            return
+        end
+
         local ok, lint = pcall(require, "lint")
         if not ok then
             vim.notify("[GeoVim] nvim-lint 未加载，跳过 lint", vim.log.levels.WARN)
