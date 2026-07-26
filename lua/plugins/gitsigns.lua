@@ -31,8 +31,12 @@ return {
                     end, { buffer = bufnr, desc = "Git Blame 当前行" })
                     vim.keymap.set("n", "<leader>gp", gs.preview_hunk, { buffer = bufnr, desc = "预览当前 Hunk" })
                     vim.keymap.set("n", "<leader>gr", gs.reset_hunk, { buffer = bufnr, desc = "撤销当前 Hunk" })
-                    vim.keymap.set("n", "]g", gs.next_hunk, { buffer = bufnr, desc = "下一个 Hunk" })
-                    vim.keymap.set("n", "[g", gs.prev_hunk, { buffer = bufnr, desc = "上一个 Hunk" })
+                    vim.keymap.set("n", "]g", function()
+                        gs.nav_hunk("next")
+                    end, { buffer = bufnr, desc = "下一个 Hunk" })
+                    vim.keymap.set("n", "[g", function()
+                        gs.nav_hunk("prev")
+                    end, { buffer = bufnr, desc = "上一个 Hunk" })
                 end,
             })
         end,

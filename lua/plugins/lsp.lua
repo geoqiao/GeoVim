@@ -84,7 +84,7 @@ return {
             vim.lsp.enable("ts_ls")
 
             -- ============================================
-            -- 5. 配置简单的 LSP 服务器（root_markers 按语言适配）
+            -- 4. 配置简单的 LSP 服务器（root_markers 按语言适配）
             -- ============================================
             local simple_lsps = {
                 { name = "html", root = { "package.json", ".git" } },
@@ -99,7 +99,7 @@ return {
             end
 
             -- ============================================
-            -- SQL 语言服务器（单独配置）
+            -- 5. SQL 语言服务器（单独配置）
             -- ============================================
             -- sqlls 内置的 sqlint 诊断规则与 SQLFluff 风格冲突，
             -- 禁用其诊断发布，统一由 nvim-lint + sqlfluff 管理。
@@ -116,16 +116,7 @@ return {
             -- 6. ESLint (LSP 模式)
             -- ============================================
             -- LspEslintFixAll on save 逻辑统一放在 autocmds.lua 的 LspAttach 中
-            vim.lsp.config("eslint", {
-                root_markers = {
-                    ".eslintrc",
-                    ".eslintrc.js",
-                    ".eslintrc.json",
-                    "eslint.config.js",
-                    "package.json",
-                    ".git",
-                },
-            })
+            -- 沿用 nvim-lspconfig 的 root_dir：它会检查 ESLint 配置、monorepo lockfile，并排除 Deno 项目。
             vim.lsp.enable("eslint")
         end,
     },

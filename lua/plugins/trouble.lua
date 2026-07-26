@@ -26,7 +26,18 @@ return {
                 desc = "LSP 定义/引用",
             },
             { "<leader>xq", "<cmd>Trouble qflist toggle<cr>", desc = "Quickfix 列表" },
-            { "<leader>xt", "<cmd>Trouble todo toggle<cr>", desc = "TODO 列表" },
+            {
+                "<leader>xt",
+                function()
+                    -- 启动页没有 BufReadPre，需先显式加载 todo-comments 才能注册 Trouble source。
+                    require("lazy").load({ plugins = { "todo-comments.nvim" } })
+                    -- todo-comments 在 VimEnter 前加载时会 defer setup；同样 defer，确保其先完成初始化。
+                    vim.defer_fn(function()
+                        vim.cmd("Trouble todo toggle")
+                    end, 0)
+                end,
+                desc = "TODO 列表",
+            },
         },
         dependencies = { "nvim-tree/nvim-web-devicons" },
         opts = {

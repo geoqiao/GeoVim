@@ -1,7 +1,7 @@
 -- ============================================
 -- Claude Code：在 Neovim 中集成 Claude Code CLI
 -- ============================================
--- 按 <leader>ac 在当前项目底部打开 Claude Code 终端面板，
+-- 按 <leader>ac 在当前项目左侧打开 Claude Code 垂直终端面板，
 -- 按 <leader>aC 继续上次对话，<leader>aR 选择历史对话。
 -- Claude Code 修改的文件会自动刷新到 Neovim 缓冲区中。
 

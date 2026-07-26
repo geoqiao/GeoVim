@@ -93,7 +93,10 @@ autocmd("LspAttach", {
                 callback = function()
                     -- 命令由 nvim-lspconfig 的 eslint on_attach 创建；若上游 API 变化则安全跳过，不能阻断保存。
                     if vim.fn.exists(":LspEslintFixAll") == 2 then
-                        vim.cmd.LspEslintFixAll()
+                        local ok, err = pcall(vim.cmd.LspEslintFixAll)
+                        if not ok then
+                            vim.notify("[GeoVim] ESLint 自动修复失败: " .. tostring(err), vim.log.levels.WARN)
+                        end
                     end
                 end,
             })
