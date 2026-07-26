@@ -9,17 +9,14 @@ return {
         "stevearc/conform.nvim",
         event = { "BufReadPre", "BufNewFile" },
         config = function()
-            -- 检测当前项目是否使用 uv 作为包管理器
-            local use_uv = vim.fn.executable("uv") == 1
-
             require("conform").setup({
                 -- 按文件类型指定使用哪个格式化器
                 formatters_by_ft = {
                     -- Lua
                     lua = { "stylua" },
 
-                    -- Python：ruff 负责格式化 + 自动整理 imports
-                    python = { "ruff_format", "ruff_organize_imports" },
+                    -- Python：先整理 imports，再格式化最终结果
+                    python = { "ruff_organize_imports", "ruff_format" },
 
                     -- Web 开发：Prettier 统一处理
                     javascript = { "prettier" },
@@ -36,30 +33,14 @@ return {
                     sql = { "sqlfluff" },
                 },
 
-                -- 自定义格式化器的命令和参数
+                -- Ruff 使用 Conform 内置参数，避免自定义 uv 包装丢失 --force-exclude / --exit-zero 等安全选项。
                 formatters = {
-                    ruff_format = {
-                        command = use_uv and "uv" or "ruff",
-                        args = use_uv and { "run", "ruff", "format", "--stdin-filename", "$FILENAME", "-" } or nil,
-                    },
-                    ruff_organize_imports = {
-                        command = use_uv and "uv" or "ruff",
-                        args = use_uv and {
-                            "run",
-                            "ruff",
-                            "check",
-                            "--select",
-                            "I",
-                            "--fix",
-                            "--stdin-filename",
-                            "$FILENAME",
-                            "-",
-                        } or nil,
-                    },
                     sqlfluff = {
                         require_cwd = false,
-                        args = function(self, ctx)
-                            local cfg = vim.fn.expand("~/.config/nvim/sqlfluff-sparksql.cfg")
+                        -- SQLFluff 在应用部分修复但仍有不可修复违规时返回 1，保留其已生成的修复结果。
+                        exit_codes = { 0, 1 },
+                        args = function()
+                            local cfg = vim.fs.joinpath(vim.fn.stdpath("config"), "sqlfluff-sparksql.cfg")
                             if vim.fn.filereadable(cfg) ~= 1 then
                                 vim.notify("[GeoVim] SQLFluff 配置文件未找到: " .. cfg, vim.log.levels.WARN)
                             end

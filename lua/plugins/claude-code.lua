@@ -45,8 +45,8 @@ return {
                 -- 文件自动刷新：Claude Code 修改文件后，Neovim 自动重载
                 refresh = {
                     enable = true,
-                    -- 不再覆盖全局 updatetime（默认 4000ms 即可,timer_interval 已每 5s 主动轮询）。
-                    -- 早期版本默认 100ms 会拉低 CursorHold 触发阈值并增加 swap 写入频率,属于副作用。
+                    -- 与 options.lua 保持一致，避免插件默认的 100ms 降低 CursorHold 阈值并增加 swap 写入频率。
+                    updatetime = 250,
                     timer_interval = 5000, -- 降低轮询频率，减少后台开销
                     show_notifications = false, -- 避免弹窗轰炸
                 },

@@ -47,7 +47,6 @@ return {
                     disabled_filetypes = {
                         statusline = { "NvimTree", "lazy", "alpha" },
                     },
-                    transparent = true,
                     globalstatus = true,
                 },
                 sections = {

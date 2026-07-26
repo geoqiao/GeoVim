@@ -19,7 +19,9 @@ return {
                 -- 当用 Telescope 或其他方式打开文件时，自动更新文件树中的高亮位置
                 update_focused_file = {
                     enable = true,
-                    update_cwd = true,
+                    update_root = {
+                        enable = true,
+                    },
                 },
                 -- 文件树渲染设置
                 renderer = {

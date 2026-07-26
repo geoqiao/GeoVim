@@ -45,7 +45,6 @@ return {
                     "yamlls", -- YAML
                     "marksman", -- Markdown
                 },
-                automatic_installation = false,
                 -- mason-lspconfig v2: 不自动启用 LSP，由 lsp.lua 集中管理 vim.lsp.enable()。
                 -- 避免与 lsp.lua 中的手动启用重复。
                 automatic_enable = false,
