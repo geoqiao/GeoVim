@@ -7,6 +7,7 @@
 -- 3. 复制、移动、选中、跳转全部使用 Vim 原生方式（y/d/c/f/t/0$^ggG 等）
 
 local map = vim.keymap.set
+local project = require("project")
 
 -- ============================================
 -- 一、现代环境的少量妥协（保留）
@@ -28,21 +29,46 @@ map("n", "<leader>Y", '"+Y', { desc = "复制整行到系统剪贴板" })
 -- ============================================
 -- 记忆口诀：leader + f(finding) 开头
 
-map("n", "<leader>ff", "<cmd> Telescope find_files <cr>", { desc = "查找文件" })
-map("n", "<leader>fw", "<cmd> Telescope live_grep <cr>", { desc = "全局文本搜索 (live grep)" })
+local function rooted_telescope(picker)
+    return function()
+        local ok, builtin = pcall(require, "telescope.builtin")
+        if not ok then
+            vim.notify("[GeoVim] Telescope 加载失败", vim.log.levels.ERROR)
+            return
+        end
+        builtin[picker]({ cwd = project.current() })
+    end
+end
+
+map("n", "<leader>ff", rooted_telescope("find_files"), { desc = "在项目中查找文件" })
+map("n", "<leader>fw", rooted_telescope("live_grep"), { desc = "在项目中全文搜索" })
 map("n", "<leader>fb", "<cmd> Telescope buffers <cr>", { desc = "查找已打开的 Buffer" })
 map("n", "<leader>fo", "<cmd> Telescope oldfiles <cr>", { desc = "最近打开的文件" })
 map("n", "<leader>fh", "<cmd> Telescope help_tags <cr>", { desc = "搜索帮助文档" })
 map("n", "<leader>fk", "<cmd> Telescope keymaps <cr>", { desc = "搜索快捷键" })
-map("n", "<leader>fc", "<cmd> Telescope grep_string <cr>", { desc = "搜索光标下的单词" })
+map("n", "<leader>fc", rooted_telescope("grep_string"), { desc = "在项目中搜索光标单词" })
 map("n", "<leader>fi", "<cmd> Telescope current_buffer_fuzzy_find <cr>", { desc = "当前 Buffer 模糊查找" })
 
 -- ============================================
 -- 四、文件树
 -- ============================================
 
-map("n", "<leader>ee", "<cmd> NvimTreeToggle <cr>", { desc = "显示/隐藏文件树" })
-map("n", "<leader>eo", "<cmd> NvimTreeFocus <cr>", { desc = "聚焦文件树" })
+map("n", "<leader>ee", function()
+    vim.cmd("NvimTreeToggle " .. vim.fn.fnameescape(project.current()))
+end, { desc = "显示/隐藏项目文件树" })
+
+map("n", "<leader>eo", function()
+    local ok, api = pcall(require, "nvim-tree.api")
+    if not ok then
+        vim.notify("[GeoVim] nvim-tree 加载失败", vim.log.levels.ERROR)
+        return
+    end
+    if api.tree.is_visible() then
+        api.tree.focus()
+    else
+        api.tree.open({ path = project.current() })
+    end
+end, { desc = "聚焦项目文件树" })
 
 -- ============================================
 -- 五、文件路径复制
@@ -181,5 +207,5 @@ map("n", "<C-u>", "<C-u>zz", { desc = "向上翻页并居中" })
 map("v", "<", "<gv", { desc = "向左缩进并保持选中" })
 map("v", ">", ">gv", { desc = "向右缩进并保持选中" })
 
--- 终端模式下按 Esc 快速回到 Normal 模式（方便切窗口）
-map("t", "<Esc>", "<C-\\><C-n>", { desc = "退出终端模式" })
+-- 单次 Esc 保留给 Pi / Claude 等终端 TUI；连续按两次才回到 Normal 模式。
+map("t", "<Esc><Esc>", "<C-\\><C-n>", { desc = "退出终端模式" })

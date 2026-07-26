@@ -13,7 +13,7 @@ return {
         },
         config = function()
             require("nvim-tree").setup({
-                -- 保留 netrw 基础功能（如 gx 打开 URL），但让 nvim-tree 接管文件浏览
+                -- 暂时保留 netrw，兼容 Alpha 的目录启动流程；日常文件浏览由 nvim-tree 接管
                 disable_netrw = false,
                 hijack_netrw = true,
                 -- 当用 Telescope 或其他方式打开文件时，自动更新文件树中的高亮位置

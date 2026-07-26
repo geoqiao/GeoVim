@@ -43,10 +43,13 @@ return {
                 return
             end
 
-            require("pi-nvim").setup({
-                socket_path = nil, -- 自动发现 /tmp/pi-nvim-sockets/ 下匹配 cwd 的 session
+            local pi = require("pi-nvim")
+            pi.setup({
+                socket_path = nil,
                 set_default_keymaps = false, -- 用上面 keys = {} 声明的映射，与 which-key 分组保持一致
             })
+            -- 上游会在多个同 cwd session 中静默选最新项；改为过滤失效 socket，并在歧义时要求手动选择。
+            require("pi_session").setup(pi)
         end,
     },
 }

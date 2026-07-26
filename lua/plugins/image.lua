@@ -8,6 +8,7 @@
 return {
     {
         "3rd/image.nvim",
+        build = false, -- processor 使用 magick_cli，不执行插件自带的 LuaRocks build
         ft = { "markdown", "vimwiki" },
         event = {
             {

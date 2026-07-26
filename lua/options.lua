@@ -6,6 +6,7 @@
 
 local o = vim.o -- 用于设置全局选项
 local opt = vim.opt -- 用于设置更复杂的列表型选项
+local security = require("security")
 
 -- ============================================
 -- 一、编辑行为（最重要的部分）
@@ -27,7 +28,7 @@ o.number = true -- 显示左侧行号
 o.relativenumber = true -- 显示相对行号（方便配合 j/k 快速跳转）
 o.cursorline = true -- 高亮当前光标所在的整行
 o.cursorlineopt = "both" -- 同时高亮行号和行内容
-o.colorcolumn = "88,120" -- 在第 88 和 120 列显示一条竖线，提示你行不要太长
+o.colorcolumn = "" -- 行宽由 formatter / linter 约束，不在编辑区绘制固定竖线
 o.signcolumn = "yes" -- 左侧始终保留一列，用于显示错误/警告图标（避免内容跳动）
 o.wrap = false -- 一行文字太长时，不要自动换行显示
 o.scrolloff = 8 -- 光标上下至少保留 8 行可见（不会贴到屏幕边缘）
@@ -52,6 +53,7 @@ o.undofile = true -- 即使关闭文件再打开，也能按 u 撤销之前的�
 o.backup = false -- 不保留 ~ 结尾的长期备份文件
 o.writebackup = true -- 写入过程中保留临时备份，避免写入中断损坏原文件
 o.swapfile = true -- 保留崩溃恢复和并发编辑检测能力
+security.setup_options() -- .env / 私钥等敏感文件不创建临时备份
 o.updatetime = 250 -- 光标停止移动后 250ms 触发自动保存 / 诊断刷新等
 o.timeoutlen = 500 -- 按组合键时，等待下一个按键的最长时间
 

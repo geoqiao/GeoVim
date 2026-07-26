@@ -47,7 +47,7 @@ return {
                         },
                     },
                 },
-                root_markers = { ".luarc.json", ".luarc.jsonc", ".git" },
+                -- 保留 nvim-lspconfig 的完整 root_markers（含 StyLua / Luacheck 配置文件）。
             })
             vim.lsp.enable("lua_ls")
 
@@ -78,9 +78,7 @@ return {
             -- ============================================
             -- 3. TypeScript / JavaScript
             -- ============================================
-            vim.lsp.config("ts_ls", {
-                root_markers = { "tsconfig.json", "jsconfig.json", "package.json", ".git" },
-            })
+            -- 使用上游 root_dir，保留 monorepo lockfile 检测和 Deno 排除逻辑。
             vim.lsp.enable("ts_ls")
 
             -- ============================================
@@ -89,9 +87,9 @@ return {
             local simple_lsps = {
                 { name = "html", root = { "package.json", ".git" } },
                 { name = "cssls", root = { "package.json", ".git" } },
-                { name = "jsonls", root = { ".git" } },
+                { name = "jsonls", root = { "package.json", ".git" } },
                 { name = "yamlls", root = { ".git" } },
-                { name = "marksman", root = { ".git" } },
+                { name = "marksman", root = { ".marksman.toml", ".obsidian", ".git" } },
             }
             for _, ls in ipairs(simple_lsps) do
                 vim.lsp.config(ls.name, { root_markers = ls.root })

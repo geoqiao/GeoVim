@@ -51,6 +51,8 @@ require("lazy").setup({
     -- 默认让所有插件都按 event/cmd/keys 懒加载,UI 和主题会在自己的 spec 里显式 lazy = false。
     defaults = { lazy = true, version = false },
     install = { colorscheme = { "neodarcula" } },
+    -- image.nvim 使用 ImageMagick CLI；关闭未使用的 LuaRocks 管线，避免无意义的健康检查错误。
+    rocks = { enabled = false },
     git = {
         timeout = 300, -- 拉取插件时进程超时时间（秒），应对国内网络较慢的情况
     },
@@ -71,8 +73,8 @@ require("lazy").setup({
                 "getscriptPlugin",
                 "gzip",
                 "logipat",
-                -- "netrw",           -- 保留：gx 打开 URL 依赖 netrw
-                -- "netrwPlugin",     -- 保留
+                -- "netrw",           -- 暂时保留：目录启动 / Alpha 兼容逻辑仍会处理 netrw buffer
+                -- "netrwPlugin",     -- Neovim 0.12 的 gx 已由 vim.ui.open() 提供，不再依赖 netrw
                 -- "netrwSettings",   -- 保留
                 -- "netrwFileHandlers", -- 保留
                 -- "matchit",         -- 保留：% 跳转 HTML 标签等
