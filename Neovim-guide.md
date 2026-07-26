@@ -14,8 +14,11 @@
 ├── lazy-lock.json           -- 插件版本锁定
 ├── lua/
 │   ├── options.lua          -- 编辑器选项与数据安全设置
-│   ├── autocmds.lua         -- LSP Attach、ESLint、Treesitter、自动 Lint
+│   ├── autocmds.lua         -- FileType、安全、LSP Attach、ESLint、自动 Lint
 │   ├── keymaps.lua          -- 全局快捷键
+│   ├── project.lua          -- 统一项目根目录解析
+│   ├── security.lua         -- 敏感文件保护
+│   ├── pi_session.lua       -- Pi session 安全选择
 │   ├── palette.lua          -- Aurora UI 调色板
 │   └── plugins/             -- lazy.nvim 自动扫描，无 init.lua
 │       ├── theme.lua        -- Neodarcula 主题
@@ -30,6 +33,8 @@
 │       ├── markdown.lua / image.lua
 │       ├── claude-code.lua / pi-nvim.lua
 │       └── ...
+├── scripts/check.sh         -- 完整配置检查
+├── scripts/smoke.lua        -- Headless 行为断言
 └── Neovim-guide.md          -- 本文件
 ```
 
@@ -298,21 +303,21 @@ Vim 中 `d` 既是"删除"也是"剪切"：
 
 | 快捷键       | 作用                   | 记忆技巧                 |
 | ------------ | ---------------------- | ------------------------ |
-| `<leader>ff` | 查找文件               | **f**ind **f**iles       |
-| `<leader>fw` | 全局文本搜索           | **f**ind **w**ord        |
+| `<leader>ff` | 在当前项目查找文件     | **f**ind **f**iles       |
+| `<leader>fw` | 在当前项目全文搜索     | **f**ind **w**ord        |
 | `<leader>fb` | 查找已打开的 Buffer    | **f**ind **b**uffer      |
 | `<leader>fo` | 最近打开的文件         | **f**ind **o**ldfiles    |
 | `<leader>fh` | 搜索帮助文档           | **f**ind **h**elp        |
 | `<leader>fk` | 搜索快捷键             | **f**ind **k**eymaps     |
-| `<leader>fc` | 搜索光标下的单词       | **f**ind **c**ursor word |
+| `<leader>fc` | 在项目中搜索光标单词   | **f**ind **c**ursor word |
 | `<leader>fi` | 当前 Buffer 内模糊查找 | **f**ind **i**n buffer   |
 
 ### 文件树
 
-| 快捷键       | 作用            |
-| ------------ | --------------- |
-| `<leader>ee` | 显示/隐藏文件树 |
-| `<leader>eo` | 聚焦文件树      |
+| 快捷键       | 作用                    |
+| ------------ | ----------------------- |
+| `<leader>ee` | 显示/隐藏当前项目文件树 |
+| `<leader>eo` | 聚焦当前项目文件树      |
 
 ### Buffer 管理
 
@@ -325,32 +330,38 @@ Vim 中 `d` 既是"删除"也是"剪切"：
 
 > **为什么不直接用 Tab 键？** `<Tab>` 在 Vim 底层等价于 `Ctrl-i`，用于跳转列表前进。覆盖它会破坏 `Ctrl-o` / `Ctrl-i` 这对代码导航的核心闭环。
 >
-> 关闭 Buffer 时不会强制丢弃修改；如果文件尚未保存，GeoVim 会阻止关闭。swapfile 和 writebackup 也保持启用，用于崩溃恢复和安全写入。
+> 关闭 Buffer 时不会强制丢弃修改；如果文件尚未保存，GeoVim 会阻止关闭。普通文件保持 swapfile 和 writebackup，用于崩溃恢复和安全写入；`.env`、`*.env` 和私钥文件例外，不保存 persistent undo、swap 或临时备份，使用 `:saveas` / `:file` 改名后也会立即应用保护。
 
 ### 窗口分屏管理
 
-| 快捷键         | 作用               |
-| -------------- | ------------------ |
-| `Ctrl+H/J/K/L` | 在分屏窗口间跳转   |
-| `<leader>sh`   | 水平分屏并打开终端 |
-| `<leader>sv`   | 垂直分屏并打开终端 |
-| `Ctrl+↑/↓/←/→` | 调整分屏窗口大小   |
+| 快捷键         | 作用                              |
+| -------------- | --------------------------------- |
+| `Ctrl+H/J/K/L` | 在分屏窗口间跳转                  |
+| `<leader>sh`   | 水平分屏并打开终端                |
+| `<leader>sv`   | 垂直分屏并打开终端                |
+| `Esc Esc`      | 从 Terminal mode 回到 Normal mode |
+| `Ctrl+↑/↓/←/→` | 调整分屏窗口大小                  |
+
+> Terminal mode 的单次 `Esc` 会传给 Pi、Claude 等 TUI；必须连续按两次 `Esc` 才退出终端模式。
 
 ### LSP 代码操作
 
-| 快捷键       | 作用                             |
-| ------------ | -------------------------------- |
-| `gd`         | 跳转到定义 (Go to Definition)    |
-| `gr`         | 查看引用 (References)            |
-| `gi`         | 跳转到实现 (Implementation)      |
-| `K`          | 悬浮查看文档 (Hover)             |
-| `<leader>cr` | 重命名符号 (Rename)              |
-| `<leader>ca` | 代码动作（自动修复等）           |
-| `<leader>ds` | 文档符号                         |
-| `<leader>ws` | 工作区符号                       |
-| `<leader>cf` | 格式化当前文件                   |
-| `[d` / `]d`  | 上一个 / 下一个诊断（错误/警告） |
-| `<leader>de` | 查看当前诊断详情                 |
+| 快捷键       | 作用                              |
+| ------------ | --------------------------------- |
+| `gd`         | 跳转到定义 (Go to Definition)     |
+| `grr`        | 查看引用 (References，原生)       |
+| `gri`        | 跳转到实现 (Implementation，原生) |
+| `grn`        | 重命名符号 (Rename，原生)         |
+| `gra`        | 代码动作 (Code Action，原生)      |
+| `gO`         | 文档符号 (Document Symbols，原生) |
+| `K`          | 悬浮查看文档 (Hover，原生)        |
+| `<leader>cr` | 重命名符号 (Rename)               |
+| `<leader>ca` | 代码动作（自动修复等）            |
+| `<leader>ds` | 文档符号                          |
+| `<leader>ws` | 工作区符号                        |
+| `<leader>cf` | 格式化当前文件                    |
+| `[d` / `]d`  | 上一个 / 下一个诊断（错误/警告）  |
+| `<leader>de` | 查看当前诊断详情                  |
 
 ### 注释
 
@@ -401,7 +412,7 @@ Vim 中 `d` 既是"删除"也是"剪切"：
 | `<leader>pi` | 检查 Pi 连接                          |
 | `<leader>pS` | 列出 / 切换 Pi session                |
 
-Pi 需要在另一个终端运行，并在 Pi 侧安装 `pi-nvim` extension。
+Pi 需要在另一个终端运行，并在 Pi 侧安装 `pi-nvim` extension。GeoVim 会验证 socket、PID、Pi 进程本身及其祖先，extension metadata 不能绕过身份检查；身份未知或同一项目有多个 session 时，发送会被阻止，必须先按 `<leader>pS` 明确选择。
 
 ### Git
 
@@ -420,7 +431,9 @@ Pi 需要在另一个终端运行，并在 Pi 侧安装 `pi-nvim` extension。
 | 光标移动到图片 | 在 Markdown 中通过 Kitty 协议弹出图片预览 |
 | 直接打开图片   | 支持 PNG、JPEG、GIF、WebP、AVIF           |
 
-图片预览需要支持 Kitty Graphics Protocol 的终端和 ImageMagick CLI。当前配置针对 Ghostty；不要切换到 Sixel，因为 Ghostty 不支持该协议。
+图片预览需要支持 Kitty Graphics Protocol 的终端和 ImageMagick CLI。当前配置针对 Ghostty；不要切换到 Sixel，因为 Ghostty 不支持该协议。Markdown 远程图片下载保持启用。
+
+Markdown Buffer 会启用 `wrap`、`linebreak` 和 `breakindent`，长段落按单词边界折行；代码 Buffer 默认不换行显示。Web / JSON / YAML 默认使用 2 空格，Python / Lua 默认使用 4 空格，项目自己的 `.editorconfig` 仍可覆盖这些默认值。
 
 ---
 
@@ -449,7 +462,7 @@ select = ["E", "F", "I", "N", "W", "UP", "B", "SIM", "C4"]
 ### Neovim 行为（自动识别 `.venv`）
 
 - 保存时先用 `ruff` 整理 imports，再用 `ruff format` 格式化最终结果
-- 离开 Insert 模式或保存后自动运行 `ruff check`
+- 保存后自动运行 `ruff check`；编辑中的实时语法和类型反馈由 LSP 提供
 - **`ty` 提供类型提示和自动补全**：对 uv 和 `.venv` 的兼容性好
 
 ---
@@ -462,7 +475,7 @@ select = ["E", "F", "I", "N", "W", "UP", "B", "SIM", "C4"]
 npm install -D typescript eslint prettier eslint-config-prettier
 ```
 
-保存时自动：
+Web / JSON / YAML 在没有项目级覆盖时默认使用 2 空格。保存时自动：
 
 - `prettier` 格式化
 - `eslint` 自动修复（通过 ESLint LSP 的 `LspEslintFixAll`）
@@ -512,7 +525,11 @@ GeoVim 默认使用仓库中的 `sqlfluff-sparksql.cfg`，方言是 Spark SQL。
 :luafile %
 ```
 
-修改多个文件后，建议**重启 Neovim**。
+修改多个文件后，建议**重启 Neovim**。维护配置时还应在 Shell 中运行：
+
+```bash
+./scripts/check.sh
+```
 
 ---
 
@@ -521,14 +538,15 @@ GeoVim 默认使用仓库中的 `sqlfluff-sparksql.cfg`，方言是 Spark SQL。
 | 场景                | 按键                        |
 | ------------------- | --------------------------- |
 | 查找文件            | `<leader>ff`                |
-| 全局搜索            | `<leader>fw`                |
+| 项目全文搜索        | `<leader>fw`                |
 | 保存                | `Ctrl+S`                    |
 | 退出 Insert         | `Esc` 或 `Ctrl+[`           |
 | 命令模式            | `:`                         |
 | 注释                | `gcc` 或 `gc`               |
 | 格式化              | `<leader>cf`                |
 | 跳定义              | `gd`                        |
-| 重命名              | `<leader>cr`                |
+| 查引用 / 跳实现     | `grr` / `gri`               |
+| 重命名              | `<leader>cr` 或 `grn`       |
 | 代码修复            | `<leader>ca`                |
 | 跳到行首            | `0` 或 `^`                  |
 | 跳到行尾            | `$`                         |
@@ -546,4 +564,6 @@ GeoVim 默认使用仓库中的 `sqlfluff-sparksql.cfg`，方言是 Spark SQL。
 | 打开 Trouble        | `<leader>xx`                |
 | 打开 Claude Code    | `<leader>ac`                |
 | 打开 Pi 对话框      | `<leader>pp`                |
+| 选择 Pi session     | `<leader>pS`                |
+| 退出 Terminal mode  | `Esc Esc`                   |
 | 忘记快捷键时        | **按空格**                  |

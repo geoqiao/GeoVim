@@ -10,7 +10,7 @@
 - **现代补全**：使用 [blink.cmp](https://github.com/saghen/blink.cmp)，并向所有 LSP 注入 capabilities
 - **格式化与检查**：Conform + nvim-lint，覆盖 Lua、Python、Web 和 Spark SQL
 - **按需加载**：lazy.nvim 根据 event、command、key、filetype 或文件 pattern 加载插件
-- **数据安全**：保留 swapfile、writebackup，并阻止误关未保存的 Buffer
+- **数据安全**：保留 swapfile、writebackup，敏感文件禁用持久 undo/swap，并阻止误关未保存的 Buffer
 - **原生键位优先**：保留 `hjkl`、`Ctrl-o`/`Ctrl-i`、`H`/`L`、`y`/`p` 等核心行为
 - **AI 集成**：支持 Claude Code 与 pi coding agent
 - **中文注释**：配置项说明以中文为主
@@ -24,8 +24,11 @@
 ├── sqlfluff-sparksql.cfg    -- Spark SQLFluff 配置
 ├── lua/
 │   ├── options.lua          -- 编辑器选项与数据安全设置
-│   ├── autocmds.lua         -- LSP Attach、ESLint、Treesitter、自动 Lint
+│   ├── autocmds.lua         -- FileType、LSP Attach、ESLint、Treesitter、自动 Lint
 │   ├── keymaps.lua          -- 全局快捷键
+│   ├── project.lua          -- 统一项目根目录解析
+│   ├── security.lua         -- 敏感文件持久状态保护
+│   ├── pi_session.lua       -- Pi session 安全选择
 │   ├── palette.lua          -- Aurora UI 调色板
 │   └── plugins/             -- lazy.nvim 自动扫描，无 init.lua
 │       ├── theme.lua / alpha.lua / noice.lua
@@ -35,6 +38,8 @@
 │       ├── autopairs.lua / surround.lua / todo-comments.lua
 │       ├── markdown.lua / image.lua
 │       └── claude-code.lua / pi-nvim.lua
+├── scripts/check.sh         -- 一键静态检查与 Headless smoke test
+├── scripts/smoke.lua        -- Neovim 行为断言
 ├── AGENTS.md / CLAUDE.md    -- AI 编码助手上下文
 ├── MAINTENANCE.md           -- 维护指南
 └── Neovim-guide.md          -- 新手使用指南
@@ -81,13 +86,14 @@
 | `:FormatDisable!`        | 仅当前 Buffer 禁用自动格式化     |
 | `:FormatEnable`          | 清除全局和当前 Buffer 的禁用状态 |
 | `:MarkdownPreviewToggle` | 浏览器预览 Markdown              |
+| `./scripts/check.sh`     | 运行完整配置检查（Shell）        |
 
 ## 快捷键速查
 
-- **搜索**：`<leader>ff` 文件，`<leader>fw` 全局文本，`<leader>fb` Buffer
-- **文件树**：`<leader>ee` 开关，`<leader>eo` 聚焦
+- **搜索**：`<leader>ff` 项目文件，`<leader>fw` 项目全文，`<leader>fb` Buffer
+- **文件树**：`<leader>ee` 开关项目树，`<leader>eo` 聚焦
 - **Buffer**：`<leader>bn` / `<leader>bp` 切换，`<leader>bd` 安全关闭
-- **LSP**：`gd` 定义，`gr` 引用，`K` 文档，`<leader>ca` Code Action
+- **LSP**：`gd` 定义，`grr` 引用，`gri` 实现，`K` 文档，`<leader>ca` Code Action
 - **诊断**：`[d` / `]d` 跳转，`<leader>de` 查看详情
 - **Trouble**：`<leader>xx` 全局诊断，`<leader>xb` 当前 Buffer，`<leader>xt` TODO
 - **格式化**：`<leader>cf`
@@ -95,6 +101,7 @@
 - **Surround**：`saiw)` 添加，`sd'` 删除，`sr'"` 替换
 - **Git**：`[g` / `]g` 切换 hunk，`<leader>gp` 预览 hunk
 - **Claude Code**：`<leader>ac`
-- **Pi**：`<leader>pp` 对话框，Visual `<leader>pp` 携带选区，`<leader>ps` 发送选区
+- **Pi**：`<leader>pp` 对话框，Visual `<leader>pp` 携带选区，`<leader>pS` 明确选择歧义 session
+- **终端**：单次 `Esc` 传给 TUI，连续两次 `Esc` 退出 Terminal mode
 
 完整说明见 [Neovim-guide.md](./Neovim-guide.md)。维护配置请阅读 [MAINTENANCE.md](./MAINTENANCE.md)。

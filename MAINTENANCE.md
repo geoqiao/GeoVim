@@ -10,6 +10,7 @@
 - `lua/plugins/lsp.lua` 使用 `vim.lsp.config(name, opts)` 扩展配置，并用 `vim.lsp.enable(name)` 显式启用。
 - `mason-lspconfig.automatic_enable = false`，避免与 `lsp.lua` 重复启用。
 - 通用 Buffer 键位及 ESLint 保存修复位于 `lua/autocmds.lua` 的 `LspAttach`。
+- `gri`、`grr`、`K` 等导航使用 Neovim 0.12 原生 LSP 映射，不再覆盖 `gi` / `gr`。
 - blink.cmp 在 LSP 启动前注入 capabilities。
 
 ### 插件组织
@@ -24,7 +25,7 @@
 - Conform 通过 `format_on_save` 统一格式化，LSP 仅作为 fallback。
 - Python 顺序为 `ruff_organize_imports` → `ruff_format`。
 - SQLFluff exit code 1 表示仍有不可修复违规，但已生成的修复结果仍会应用。
-- Lua/Python 在 `InsertLeave` 和 `BufWritePost` lint；SQL 只在 `BufWritePost` lint。
+- Lua、Python、SQL 均只在 `BufWritePost` lint；实时语法和类型反馈由 LSP 负责。
 - `:FormatDisable` 全局禁用，`:FormatDisable!` 仅禁用当前 Buffer，`:FormatEnable` 恢复。
 
 ## 添加插件
@@ -79,10 +80,25 @@ return {
 2. 在 `lua/autocmds.lua` 中明确触发策略；重型工具优先只在保存后运行。
 3. 用包含真实违规的文件验证 diagnostics。
 
+## 项目根目录约定
+
+- `lua/project.lua` 是 Telescope、nvim-tree 和 Pi session 匹配的唯一 root resolver。
+- 优先识别最近的 `.git`、语言包管理文件、`.marksman.toml` 或 `.obsidian`。
+- 没有 marker 时回退到当前文件目录；不要启用 `autochdir`。
+- Marksman 额外使用 `.marksman.toml`、`.obsidian`、`.git` 形成 Markdown workspace。
+
+## Pi session 安全
+
+- `lua/pi_session.lua` 验证 Unix socket、PID 和 Pi 进程身份，过滤退出异常或 PID 复用留下的陈旧记录，并禁止跨项目 fallback。
+- 必须先通过本机进程及祖先确认 Pi 身份；extension metadata 只补充角色、不能绕过身份验证。当前项目只有一个已确认主候选时自动连接，身份未知或多个候选时 fail closed，必须用 `<leader>pS` 明确选择。
+- 手动选择会固定到该 session；目标退出后自动解除，并重新按安全规则解析。
+
 ## 数据安全约定
 
 - `swapfile = true`：支持崩溃恢复和并发编辑检测。
 - `writebackup = true`：避免写入中断损坏原文件。
+- `.env`、`*.env`、PEM / key 和常见 SSH 私钥通过 `lua/security.lua` 禁用 persistent undo、swap 和临时备份；`:saveas` / `:file` 改名后同样生效。
+- `download_remote_images = true` 是明确保留的产品选择，不应被安全清理误改。
 - Bufferline 不允许强制关闭 modified buffer。
 - 长期 `backup` 文件保持关闭。
 
@@ -92,15 +108,17 @@ return {
 - mason-tool-installer 设置 `run_on_start = false`，避免启动时联网。
 - `:MasonInstallAll` 手动安装 stylua、ruff、prettier、sqlfluff。
 - `luacheck` 通过 Homebrew 管理，避免当前 Mason/Lua 版本兼容问题。
+- lazy.nvim 的 LuaRocks 管线保持关闭；image.nvim 使用 `magick_cli` 且显式 `build = false`。
 
 ## 验证命令
 
+完整检查统一使用：
+
 ```bash
-stylua --check .
-luacheck init.lua lua --globals vim --no-color
-git diff --check
-nvim --headless -u ./init.lua +qa
+./scripts/check.sh
 ```
+
+它会执行 StyLua、Luacheck、Prettier、Git whitespace 检查，以及 `scripts/smoke.lua` 中的 Headless 行为断言。Smoke test 覆盖 filetype profile、project root、敏感文件、Pi fail-closed 路由、lazy trigger、远程图片配置和 LuaRocks 状态。
 
 功能修改还应执行对应用户流程：
 
@@ -135,6 +153,7 @@ nvim --headless -u ./init.lua +qa
 1. `magick -version` 确认 ImageMagick CLI 可用。
 2. 确认终端支持 Kitty Graphics Protocol；当前配置针对 Ghostty，Ghostty 不支持 Sixel。
 3. 在 Markdown 或直接打开 PNG/JPEG 文件以触发 image.nvim，并确认彩色图片实际可见。
+4. Markdown 远程图片下载保持启用；排查网络图片时同时检查 URL 可达性。
 
 ### 主题启动闪烁
 

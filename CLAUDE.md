@@ -13,8 +13,9 @@ This is a personal Neovim configuration written in Lua, targeting Neovim 0.12+. 
 
 ## Common Commands
 
-Since this is a Neovim config, there is no traditional build or test suite. Common development tasks use the following tools and Neovim commands:
+This repository has a Headless smoke suite rather than a traditional application build. Run `./scripts/check.sh` after every change. Common development tasks use the following tools and Neovim commands:
 
+- **Full validation:** `./scripts/check.sh`
 - **Format Lua files:** `stylua .` (config in `.stylua.toml` — 4-space indentation, 120 column width, auto-prefer double quotes)
 - **Check formatting without writing:** `stylua --check .`
 - **Open plugin manager:** `:Lazy` (lazy.nvim)
@@ -30,8 +31,14 @@ Since this is a Neovim config, there is no traditional build or test suite. Comm
 `init.lua` bootstraps `lazy.nvim` if missing, then loads three core modules in this order:
 
 1. `lua/options.lua` — editor settings (tabs, line numbers, clipboard, diagnostics, etc.)
-2. `lua/autocmds.lua` — autocommands (cursor restore, yank highlight, LSP attach, auto-lint)
+2. `lua/autocmds.lua` — autocommands (filetype profiles, sensitive files, LSP attach, auto-lint)
 3. `lua/keymaps.lua` — all keymaps
+
+Shared core modules:
+
+- `lua/project.lua` — one project-root resolver for Telescope, nvim-tree, and Pi session matching
+- `lua/security.lua` — sensitive-file patterns and persistent-state protection
+- `lua/pi_session.lua` — fail-closed Pi socket discovery and explicit session selection
 
 After the core modules, `init.lua` calls `require("lazy").setup({ spec = { import = "plugins" } })`, which causes lazy.nvim to automatically import **every** `.lua` file in `lua/plugins/` via directory scan.
 
@@ -51,7 +58,7 @@ This config uses the **modern native LSP API**, not the classic `lspconfig` `set
 - Servers are enabled with `vim.lsp.enable(name)`.
 - **`mason-lspconfig` v2 schema:** the legacy `handlers = {}` field is gone. `automatic_enable = false`; every server is enabled explicitly in `lsp.lua`, so Mason installation and LSP activation have one clear owner each.
 - **Buffer-local keymaps and capabilities** are wired in `lua/autocmds.lua` inside an `LspAttach` autocommand. This includes:
-  - Navigation: `gd`, `gr`, `gi`, `K`, `gD`
+  - Custom navigation: `gd`, `gD`; Neovim 0.12 supplies native `gri`, `grr`, `K`, `gO`, and related mappings
   - Actions: `<leader>cr` (rename), `<leader>ca`, `<leader>ds`, `<leader>ws`
   - **Completion via `blink.cmp`** (`lua/plugins/cmp.lua`); `vim.lsp.config('*', { capabilities = blink.get_lsp_capabilities() })` is injected at the top of `lsp.lua`'s config function. There is no `vim.lsp.completion.enable` call anymore.
   - ESLint Fix All on save (for `client.name == "eslint"` only)
@@ -73,7 +80,7 @@ This config uses the **modern native LSP API**, not the classic `lspconfig` `set
   - Lua → `luacheck` (passing `--globals vim love`)
   - Python → `ruff`
   - SQL → `sqlfluff`
-- **Auto-lint:** Lua/Python run on `BufWritePost` and `InsertLeave`; SQLFluff runs only on `BufWritePost` because it is substantially heavier.
+- **Auto-lint:** Lua, Python, and SQL run only on `BufWritePost`; LSP owns real-time syntax and type diagnostics.
 
 ### Keymap Design Philosophy
 
@@ -99,3 +106,16 @@ The `greggh/claude-code.nvim` plugin is configured in `lua/plugins/claude-code.l
 
 - Trouble uses the v3 command API and lazy-loads directly from `<leader>x*` mappings.
 - `pi-nvim.lua` uses separate Normal and Visual mappings. Visual mappings intentionally use `:` commands so Neovim materializes the `'<` / `'>` range before the plugin reads the selection.
+- `pi_session.lua` validates socket type, PID, the Pi process itself, and its ancestry before consulting role metadata; metadata cannot bypass identity checks. One verified main session connects automatically; unknown identities or multiple matches require explicit `<leader>pS` selection.
+
+### Project Root and Filetype Profiles
+
+- `project.current()` resolves the nearest repository, language package, or Obsidian marker and is passed explicitly to Telescope and nvim-tree. Do not enable `autochdir`.
+- Web/JSON/YAML buffers use two-space indentation; Python/Lua use four spaces.
+- Markdown enables `wrap`, `linebreak`, and `breakindent`; code buffers remain unwrapped.
+- `colorcolumn` is intentionally disabled globally.
+- Sensitive environment and private-key files disable persistent undo/swap and match `backupskip`, including after `:saveas` / `:file` renames.
+
+### Validation
+
+Run `./scripts/check.sh` after every change. It performs formatting, linting, Markdown formatting, Git whitespace checks, and Headless smoke assertions. `download_remote_images = true` is an intentional invariant and is covered by the smoke test.

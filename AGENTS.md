@@ -25,8 +25,11 @@
 ├── .stylua.toml          -- Lua 代码格式化配置
 ├── lua/
 │   ├── options.lua       -- 编辑器基础选项（行号、缩进、主题、剪贴板等）
-│   ├── autocmds.lua      -- 自动命令（光标恢复、yank 高亮、LSP Attach、auto-lint 等）
+│   ├── autocmds.lua      -- 自动命令（FileType、安全、LSP Attach、auto-lint 等）
 │   ├── keymaps.lua       -- 全局快捷键映射
+│   ├── project.lua       -- Telescope / nvim-tree / Pi 共用的项目根目录解析
+│   ├── security.lua      -- 敏感文件 persistent state 保护
+│   ├── pi_session.lua    -- Pi socket 过滤与 fail-closed session 选择
 │   └── plugins/          -- 插件配置目录（lazy.nvim 通过 import = "plugins" 自动扫描全部 .lua 文件，**没有 init.lua**）
 │       ├── theme.lua       -- 主题（Neodarcula —— PyCharm Darcula 风格）
 │       ├── alpha.lua       -- 启动屏（ANSI Shadow GEOVIM logo）
@@ -51,6 +54,8 @@
 │       ├── noice.lua       -- 命令行 / 通知 UI
 │       ├── claude-code.lua -- Claude Code 集成
 │       └── pi-nvim.lua     -- pi coding agent 集成
+├── scripts/check.sh       -- 完整静态检查与 Headless smoke test
+├── scripts/smoke.lua      -- 配置行为断言
 └── README.md / CLAUDE.md / MAINTENANCE.md / Neovim-guide.md
 ```
 
@@ -72,17 +77,18 @@
 
 本项目没有传统意义上的“构建”或“测试套件”。开发/维护时常用以下命令：
 
-| 命令               | 作用                                              |
-| ------------------ | ------------------------------------------------- |
-| `stylua .`         | 格式化本仓库所有 Lua 文件                         |
-| `stylua --check .` | 仅检查格式，不写入                                |
-| `:Lazy`            | 打开 lazy.nvim 插件管理器                         |
-| `:Lazy update`     | 更新所有插件                                      |
-| `:Mason`           | 打开 Mason 工具安装器（LSP / Formatter / Linter） |
-| `:checkhealth`     | 运行 Neovim 健康检查                              |
-| `:source %`        | 重载当前正在编辑的配置文件                        |
-| `:LspInfo`         | 查看当前 Buffer 已连接的 LSP 客户端               |
-| `:ConformInfo`     | 查看 conform.nvim 的格式化状态                    |
+| 命令                 | 作用                                              |
+| -------------------- | ------------------------------------------------- |
+| `stylua .`           | 格式化本仓库所有 Lua 文件                         |
+| `stylua --check .`   | 仅检查格式，不写入                                |
+| `./scripts/check.sh` | 运行完整静态检查与 Headless smoke test            |
+| `:Lazy`              | 打开 lazy.nvim 插件管理器                         |
+| `:Lazy update`       | 更新所有插件                                      |
+| `:Mason`             | 打开 Mason 工具安装器（LSP / Formatter / Linter） |
+| `:checkhealth`       | 运行 Neovim 健康检查                              |
+| `:source %`          | 重载当前正在编辑的配置文件                        |
+| `:LspInfo`           | 查看当前 Buffer 已连接的 LSP 客户端               |
+| `:ConformInfo`       | 查看 conform.nvim 的格式化状态                    |
 
 ---
 
@@ -106,7 +112,9 @@ Lua 代码统一使用 **StyLua** 格式化，配置见 `.stylua.toml`：
 - **Leader 键**：`<Space>`（空格）
 - **不覆盖 Vim 核心原生键位**：`hjkl`、`y`/`p`、`Ctrl-o`/`Ctrl-i`、`gg`/`G`、`u`/`Ctrl+r` 等均保持原样；
 - **`<Tab>` 故意不映射**，因为它在 Vim 底层等价于 `Ctrl-i`，重映射会破坏跳转列表；
-- Buffer 切换使用 `<leader>bn` / `<leader>bp`（保留 `H`/`L` 的原生屏幕导航功能）。
+- Buffer 切换使用 `<leader>bn` / `<leader>bp`（保留 `H`/`L` 的原生屏幕导航功能）；
+- LSP 引用 / 实现使用 Neovim 0.12 原生 `grr` / `gri`，不要重新覆盖 `gr` / `gi`；
+- Terminal mode 单次 `Esc` 留给 TUI，连续两次 `Esc` 才退出到 Normal mode。
 
 **Git 提交规范**：
 
@@ -124,14 +132,20 @@ Lua 代码统一使用 **StyLua** 格式化，配置见 `.stylua.toml`：
 
 ## 测试说明
 
-本项目**没有自动化测试**。验证修改是否正确的常用方式：
+每次修改后必须先运行：
 
-1. **格式检查**：`stylua --check .`
-2. **语法检查**：在 Neovim 中打开修改后的 Lua 文件，运行 `:luafile %`，观察是否有报错；
-3. **功能验证**：
-   - 修改 LSP 配置后，打开对应语言文件，运行 `:LspInfo` 确认服务器已连接；
-   - 修改格式化配置后，保存对应文件，运行 `:ConformInfo` 确认格式化器被调用；
-   - 修改插件配置后，运行 `:Lazy` 查看插件加载状态。
+```bash
+./scripts/check.sh
+```
+
+它覆盖 StyLua、Luacheck、Prettier、Git whitespace 和 Headless smoke test。Smoke test 验证 filetype profile、project root、敏感文件、Pi fail-closed 路由、lazy trigger、远程图片开关和 LuaRocks 状态。
+
+交互式功能仍需按改动范围人工验证：
+
+- 修改 LSP 配置后，打开对应语言文件，运行 `:LspInfo` 确认服务器已连接；
+- 修改格式化配置后，保存对应文件，运行 `:ConformInfo` 确认格式化器被调用；
+- 修改插件配置后，运行 `:Lazy` 查看插件加载状态；
+- 图片协议、浏览器预览、Pi session 选择必须在真实 UI 中验证。
 
 ---
 
@@ -141,12 +155,25 @@ Lua 代码统一使用 **StyLua** 格式化，配置见 `.stylua.toml`：
 - **conform.nvim 使用内置的 `format_on_save` 机制**处理保存时格式化，并自动 fallback 到 LSP 格式化。可通过 `:FormatDisable` / `:FormatEnable` 手动开关；
 - **Mason 安装职责分离**：mason-lspconfig 根据 `ensure_installed` 管理 LSP；mason-tool-installer 设置 `run_on_start = false`，首次使用需手动运行 `:MasonInstallAll` 安装非 LSP 工具，之后不会自动更新（`auto_update = false`）；
 - **Claude Code 集成**：`greggh/claude-code.nvim` 插件会调用系统 PATH 中的 `claude` 命令，并在左侧打开垂直终端分屏。该插件配置了文件自动刷新（`refresh.enable = true`），Claude Code 修改的文件会自动重载到 Neovim 缓冲区中；
-- **数据安全**：启用 `swapfile` 和 `writebackup`，Bufferline 禁止强制关闭未保存 Buffer；
+- **数据安全**：普通文件启用 `swapfile` 和 `writebackup`，Bufferline 禁止强制关闭未保存 Buffer；`.env`、`*.env` 和私钥文件由 `security.lua` 禁用 persistent undo / swap / 临时备份，`:saveas` / `:file` 改名后也必须生效；
+- **远程图片**：`image.lua` 的 `download_remote_images = true` 是用户明确保留的行为，不得擅自关闭；
 - **剪贴板**：`options.lua` 中设置了 `clipboard = "unnamedplus"`，`y`/`p` 默认与系统剪贴板打通。
 
 ---
 
 ## 架构要点
+
+### Project root 与 Pi session
+
+- `lua/project.lua` 是 Telescope、nvim-tree 和 Pi 的唯一项目根目录解析器；不要启用 `autochdir`；
+- Marksman 使用 `.marksman.toml`、`.obsidian`、`.git` 识别 Markdown workspace；
+- `lua/pi_session.lua` 验证 socket / PID / Pi 进程身份并禁止跨项目 fallback；角色未知或多个候选时必须通过 `<leader>pS` 明确选择。
+
+### FileType profile
+
+- Web / JSON / YAML 默认 2 空格，Python / Lua 默认 4 空格；项目 `.editorconfig` 仍可覆盖；
+- Markdown 启用 `wrap`、`linebreak`、`breakindent`，代码 Buffer 默认不换行；
+- `colorcolumn` 全局关闭，行宽交给 formatter / linter。
 
 ### LSP 架构（Neovim 0.12+ 原生 API）
 
@@ -168,7 +195,7 @@ Lua 代码统一使用 **StyLua** 格式化，配置见 `.stylua.toml`：
   - SQL → `sqlfluff`
 - **触发时机**：
   - 保存时自动格式化由 conform.nvim 的 `format_on_save` 统一处理（`lua/plugins/conform.lua`），支持 LSP fallback；
-  - Lua/Python Lint 在 `BufWritePost`、`InsertLeave` 时触发；SQLFluff 仅在 `BufWritePost` 时触发（`lua/autocmds.lua`）。
+  - Lua、Python、SQL Lint 均仅在 `BufWritePost` 时触发；实时反馈由 LSP 负责（`lua/autocmds.lua`）。
 
 ### 插件加载策略
 
@@ -177,4 +204,5 @@ Lua 代码统一使用 **StyLua** 格式化，配置见 `.stylua.toml`：
 - `init.lua` 中已设 `defaults = { lazy = true }`，所有其它插件**必须**自带 `event` / `cmd` / `keys` / `ft` 触发器，否则不会加载；
 - 常驻 UI 插件使用 `event = "VeryLazy"`；Telescope / nvim-tree 按命令加载，Trouble / AI 集成按快捷键加载，image.nvim 按 filetype 或图片 pattern 加载；
 - Treesitter、LSP、conform、lint 等使用 `BufReadPre` / `BufNewFile` 事件触发；
-- `init.lua` 的 `performance.rtp.disabled_plugins` 中禁用了大量内置冗余插件（如 `gzip`、`tutor`、`tar` 等），以提升启动速度；netrw 系列被故意保留，因为 `gx` 打开 URL 仍依赖它。
+- `init.lua` 的 `performance.rtp.disabled_plugins` 中禁用了大量内置冗余插件（如 `gzip`、`tutor`、`tar` 等），以提升启动速度；netrw 暂时保留给目录启动 / Alpha 兼容逻辑，Neovim 0.12 的 `gx` 本身已使用 `vim.ui.open()`。
+- lazy.nvim 的 LuaRocks 管线关闭；image.nvim 使用 `magick_cli` 且 `build = false`。
