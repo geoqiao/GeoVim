@@ -1,181 +1,141 @@
 # MAINTENANCE.md
 
-本文档面向维护者，说明如何修改、扩展和排查本 Neovim 配置。
+本文档面向 GeoVim 维护者，说明架构、扩展方式和验证流程。
 
----
+## 核心架构
 
-## 核心架构原则
+### Neovim 0.12+ 原生 LSP
 
-1. **Neovim 0.12+ 原生 LSP API**
-   - 使用 `vim.lsp.config(name, opts)` 定义服务器
-   - 使用 `vim.lsp.enable(name)` 启用服务器
-   - Buffer 级键位和补全统一在 `lua/autocmds.lua` 的 `LspAttach` 事件里绑定
-   - `lspconfig` 仅作为 mason-lspconfig 的 fallback 存在
-   - `mason-lspconfig` 的默认 handler 已启用，安装完成后自动调用 `vim.lsp.enable()`
+- `nvim-lspconfig` 提供 server 默认定义。
+- `lua/plugins/lsp.lua` 使用 `vim.lsp.config(name, opts)` 扩展配置，并用 `vim.lsp.enable(name)` 显式启用。
+- `mason-lspconfig.automatic_enable = false`，避免与 `lsp.lua` 重复启用。
+- 通用 Buffer 键位及 ESLint 保存修复位于 `lua/autocmds.lua` 的 `LspAttach`。
+- blink.cmp 在 LSP 启动前注入 capabilities。
 
-2. **无 nvim-cmp**
-   - 所有补全靠 `vim.lsp.completion.enable()`（Neovim 0.10+ 原生）
-   - 如需更强的补全体验，可以自行添加 `nvim-cmp` + `cmp-nvim-lsp`
+### 插件组织
 
-3. **lazy.nvim 插件组织模式**
-   - `lua/plugins/init.lua` 只负责 `import`，不写具体配置
-   - 每个插件/插件组一个独立文件，return lazy spec
+- `init.lua` 使用 `spec = { import = "plugins" }` 自动扫描 `lua/plugins/*.lua`。
+- **不存在** `lua/plugins/init.lua`。
+- 全局 `defaults.lazy = true`，每个 spec 必须声明 `lazy = false`、`event`、`cmd`、`keys` 或 `ft`。
+- 优先使用最具体的触发器：命令型插件用 `cmd`，快捷键入口用 `keys`，文件类型能力用 `ft`。
 
-4. **格式化由 conform 官方机制统一处理**
-   - `conform.format_on_save` 在 `conform.lua` 中配置
-   - `autocmds.lua` 中**不再保留**任何格式化相关的 `BufWritePre`
-   - 提供 `:FormatDisable` / `:FormatEnable` 手动开关
+### 格式化与 Lint
 
----
+- Conform 通过 `format_on_save` 统一格式化，LSP 仅作为 fallback。
+- Python 顺序为 `ruff_organize_imports` → `ruff_format`。
+- SQLFluff exit code 1 表示仍有不可修复违规，但已生成的修复结果仍会应用。
+- Lua/Python 在 `InsertLeave` 和 `BufWritePost` lint；SQL 只在 `BufWritePost` lint。
+- `:FormatDisable` 全局禁用，`:FormatDisable!` 仅禁用当前 Buffer，`:FormatEnable` 恢复。
 
-## 添加新插件
+## 添加插件
 
-1. 在 `lua/plugins/` 下新建一个 `.lua` 文件，例如 `myplugin.lua`
-2. 写入 lazy spec：
+在 `lua/plugins/` 新建文件并返回 lazy spec：
 
-   ```lua
-   return {
-     {
-       "author/plugin-name",
-       event = "VeryLazy",
-       config = function()
-         require("plugin-name").setup({})
-       end,
-     },
-   }
-   ```
+```lua
+return {
+    {
+        "author/plugin-name",
+        cmd = "PluginCommand",
+        opts = {},
+    },
+}
+```
 
-3. lazy.nvim 会自动扫描 `lua/plugins/` 目录，无需在 `init.lua` 中额外注册
-4. 重启 Neovim，运行 `:Lazy` 确认加载无误
+不要无条件使用 `VeryLazy`。根据实际入口选择：
 
----
+- 用户命令：`cmd`
+- 快捷键：`keys`
+- 文件类型：`ft`
+- Buffer 生命周期：`BufReadPre` / `BufNewFile`
+- 主题：`lazy = false` + 高 `priority`
 
-## 添加新 LSP 服务器
+## 添加 LSP
 
 以 `rust_analyzer` 为例：
 
-1. **在 `lua/plugins/lsp.lua` 中添加配置**：
+1. 在 `lua/plugins/lsp.lua` 中配置并启用：
 
    ```lua
    vim.lsp.config("rust_analyzer", {
-     root_markers = { "Cargo.toml", ".git" },
+       root_markers = { "Cargo.toml", ".git" },
    })
    vim.lsp.enable("rust_analyzer")
    ```
 
-2. **在 `lua/plugins/mason.lua` 的 `ensure_installed` 列表中加入**：
+2. 在 `lua/plugins/mason.lua` 的 mason-lspconfig `ensure_installed` 中加入 `"rust_analyzer"`。
+3. 重启 Neovim，打开 Rust 文件并运行 `:LspInfo`。
 
-   ```lua
-   "rust_analyzer",
-   ```
+通用键位不要复制到 server 配置；统一由 `LspAttach` 管理。
 
-3. 重启 Neovim，打开对应类型文件，运行 `:LspInfo` 确认服务器已连接
+## 添加 Formatter
 
-> 不需要写 `on_attach`！所有 buffer 级通用行为都在 `lua/autocmds.lua` 的 `LspAttach` 里统一处理。
-> mason-lspconfig 的默认 handler 会自动 `vim.lsp.enable()` 新安装的 LSP。
+1. 在 `lua/plugins/conform.lua` 的 `formatters_by_ft` 注册。
+2. 如果工具由 Mason 管理，在 mason-tool-installer 的 `ensure_installed` 中加入包名。
+3. 用 `:ConformInfo` 检查可用性，并保存测试文件验证真实输出。
 
----
+## 添加 Linter
 
-## 添加新格式化器
+1. 在 `lua/plugins/lint.lua` 的 `linters_by_ft` 注册。
+2. 在 `lua/autocmds.lua` 中明确触发策略；重型工具优先只在保存后运行。
+3. 用包含真实违规的文件验证 diagnostics。
 
-以 `shfmt`（Shell 脚本）为例：
+## 数据安全约定
 
-1. **在 `lua/plugins/conform.lua` 中注册**：
-
-   ```lua
-   formatters_by_ft = {
-     -- 已有配置 ...
-     sh = { "shfmt" },
-   }
-   ```
-
-2. **在 `lua/plugins/mason.lua` 的 `mason-tool-installer` 中加入**：
-
-   ```lua
-   "shfmt",
-   ```
-
-3. 保存 shell 脚本文件，观察是否自动格式化
-
----
-
-## 添加新 Linter
-
-以 `shellcheck` 为例：
-
-1. **安装工具**：`:MasonInstall shellcheck`
-2. **在 `lua/plugins/lint.lua` 中注册**：
-
-   ```lua
-   lint.linters_by_ft = {
-     -- 已有配置 ...
-     sh = { "shellcheck" },
-   }
-   ```
-
-3. 保存文件或离开 Insert 模式时，自动触发 lint
-
----
-
-## 键位映射规范
-
-- **全局映射**统一写在 `lua/keymaps.lua`
-- **Buffer 级映射**（LSP、Git 等）统一写在 `lua/autocmds.lua` 或对应插件的 `on_attach` 里
-- Leader 键是 `<Space>`
-- **绝不覆盖**以下原生核心键位：`hjkl`、`y`/`p`、`Ctrl-o`/`Ctrl-i`、`;`（f/t 重复）、`H`/`L`（屏幕导航）
-- `<Tab>` intentionally 不映射，避免破坏 jump list
-- 高频操作（Buffer 切换、Claude Code 等）使用 `<leader>` 分组，避免与原生键冲突
-
----
+- `swapfile = true`：支持崩溃恢复和并发编辑检测。
+- `writebackup = true`：避免写入中断损坏原文件。
+- Bufferline 不允许强制关闭 modified buffer。
+- 长期 `backup` 文件保持关闭。
 
 ## Mason 工具管理
 
-由于 `mason-tool-installer.run_on_start = false`（避免启动阻塞），工具不会自动安装。
+- mason-lspconfig 根据 `ensure_installed` 管理 LSP。
+- mason-tool-installer 设置 `run_on_start = false`，避免启动时联网。
+- `:MasonInstallAll` 手动安装 stylua、ruff、prettier、sqlfluff。
+- `luacheck` 通过 Homebrew 管理，避免当前 Mason/Lua 版本兼容问题。
 
-- **一键安装所有工具**：`:MasonInstallAll`
-- **查看已安装工具**：`:Mason`
-- **安装单个工具**：`:MasonInstall <tool-name>`
-
----
-
-## 格式化本仓库的 Lua 代码
+## 验证命令
 
 ```bash
-stylua .
+stylua --check .
+luacheck init.lua lua --globals vim --no-color
+git diff --check
+nvim --headless -u ./init.lua +qa
 ```
 
-配置见 `.stylua.toml`（4 空格缩进，120 列宽，优先双引号）。
+功能修改还应执行对应用户流程：
 
----
+- LSP：`:LspInfo`
+- Formatter：`:ConformInfo` 并检查格式化后的文件
+- 插件触发：确认首次按键/命令能从未加载状态启动插件
+- 图片：在支持 Sixel 的真实终端中验证
+- 最终运行 `:checkhealth`
 
 ## 常见排查
 
-### markdown-preview.nvim 无法正常启动
+### LSP 没有启动
 
-**原因**：`mkdp#util#install()` 下载的预编译二进制可能因平台或网络问题失败。
-**修复**：使用 `npm install` 在本地安装依赖。如果报错，删除插件目录后重装：
+1. `:Mason` 确认 server 已安装。
+2. `:LspInfo` 查看客户端与 root directory。
+3. 检查 `lsp.lua` 是否同时调用 `vim.lsp.config` 和 `vim.lsp.enable`。
+4. 新安装 server 后重启 Neovim。
 
-```bash
-rm -rf ~/.local/share/nvim/lazy/markdown-preview.nvim
-```
+### 自动格式化没有执行
 
-然后在 Neovim 里运行 `:Lazy install`。
+1. `:ConformInfo` 检查 formatter 和命令路径。
+2. 检查 filetype 是否在 `formatters_by_ft`。
+3. 执行 `:FormatEnable` 清除禁用状态。
+4. SQL 检查 `sqlfluff-sparksql.cfg` 是否存在。
 
-### 打开文件后 LSP 没有启动
+### Markdown 预览失败
 
-1. 运行 `:Mason` 确认对应服务器已安装
-2. 运行 `:LspInfo` 查看当前 buffer 已连接的客户端
-3. 检查 `lua/plugins/lsp.lua` 中是否对该服务器调用了 `vim.lsp.enable(name)`
-4. 如果刚通过 Mason 安装完，可能需要**重启 Neovim**（mason-lspconfig 默认 handler 会调用 `vim.lsp.enable`，但有时需要重新加载）
+确认 Node.js/npm 可用，然后在 lazy.nvim 中重新 build `markdown-preview.nvim`。
 
-### 保存时没有自动格式化
+### 图片不显示
 
-1. 运行 `:ConformInfo` 查看 conform 是否识别当前文件类型
-2. 检查 `lua/plugins/conform.lua` 中 `formatters_by_ft` 是否包含该类型
-3. 确认对应 formatter 已通过 Mason 安装
-4. 运行 `:FormatEnable` 确认没有禁用自动格式化
+1. `magick -list format | grep -i sixel` 确认 ImageMagick 支持 Sixel。
+2. 确认终端支持 Sixel；当前配置针对 Ghostty。
+3. 在 Markdown 或直接打开 PNG/JPEG 文件以触发 image.nvim。
 
-### 主题没有生效或启动时闪默认色
+### 主题启动闪烁
 
-- `theme.lua` 中 `lazy = false` 和 `priority = 1000` 确保主题最先加载
-- `theme.lua` 的 `config` 中已设置 `vim.cmd("colorscheme catppuccin-frappe")`，无需在 `init.lua` 中重复
+`theme.lua` 必须保持 `lazy = false`、`priority = 1000`，并应用 `colorscheme neodarcula`。

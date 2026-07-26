@@ -1,112 +1,100 @@
 # GeoVim — 现代 Neovim 配置
 
-一套从零独立编写的现代 Neovim 配置，目标简洁、对新手友好，同时**尊重纯粹的 Vim 原生操作习惯**。
+一套从零编写的 Neovim 配置，目标是简洁、对新手友好，同时尊重 Vim 原生操作习惯。
 
-> **要求：** Neovim >= 0.12（使用原生 LSP 新 API）
-
----
+> **要求：** Neovim >= 0.12
 
 ## 特性
 
-- **Neovim 0.12+ 原生 LSP**：使用 `vim.lsp.config` / `vim.lsp.enable`
-- **原生代码补全**：不安装 nvim-cmp，直接启用 `vim.lsp.completion`
-- **懒加载**：基于 [lazy.nvim](https://github.com/folke/lazy.nvim)，启动迅速
-- **纯粹 Vim 原生键位**：不覆盖 `hjkl`、`y`/`p`、`Ctrl-o`/`Ctrl-i`、`;`（f/t 重复）、`H`/`L`（屏幕导航）等核心操作
-- **中文注释**：所有配置文件都带有详细中文注释
-
----
+- **原生 LSP 架构**：使用 `vim.lsp.config` / `vim.lsp.enable`
+- **现代补全**：使用 [blink.cmp](https://github.com/saghen/blink.cmp)，并向所有 LSP 注入 capabilities
+- **格式化与检查**：Conform + nvim-lint，覆盖 Lua、Python、Web 和 Spark SQL
+- **按需加载**：lazy.nvim 根据 event、command、key、filetype 或文件 pattern 加载插件
+- **数据安全**：保留 swapfile、writebackup，并阻止误关未保存的 Buffer
+- **原生键位优先**：保留 `hjkl`、`Ctrl-o`/`Ctrl-i`、`H`/`L`、`y`/`p` 等核心行为
+- **AI 集成**：支持 Claude Code 与 pi coding agent
+- **中文注释**：配置项说明以中文为主
 
 ## 目录结构
 
-```
+```text
 ~/.config/nvim/
-├── init.lua                 -- 启动入口
+├── init.lua                 -- 启动入口与 lazy.nvim 配置
+├── lazy-lock.json           -- 插件版本锁定
+├── sqlfluff-sparksql.cfg    -- Spark SQLFluff 配置
 ├── lua/
-│   ├── options.lua          -- 编辑器基础选项
-│   ├── autocmds.lua         -- 自动命令（LSP Attach、保存格式化、自动 Lint 等）
+│   ├── options.lua          -- 编辑器选项与数据安全设置
+│   ├── autocmds.lua         -- LSP Attach、ESLint、Treesitter、自动 Lint
 │   ├── keymaps.lua          -- 全局快捷键
-│   └── plugins/             -- 插件配置
-│       ├── init.lua         -- 插件总列表（仅 import）
-│       ├── theme.lua        -- 主题
-│       ├── telescope.lua    -- 模糊搜索
-│       ├── nvimtree.lua     -- 文件树
-│       ├── lualine.lua      -- 状态栏
-│       ├── bufferline.lua   -- Buffer 标签
-│       ├── treesitter.lua   -- 语法高亮
-│       ├── mason.lua        -- 自动安装 LSP / 格式化器 / Linter
-│       ├── lsp.lua          -- LSP 服务器配置
-│       ├── conform.lua      -- 代码格式化
-│       ├── lint.lua         -- 代码检查
-│       ├── gitsigns.lua     -- Git 增强
-│       ├── markdown.lua     -- Markdown 预览
-│       ├── claude-code.lua  -- Claude Code 集成
-│       └── ...
-├── .stylua.toml             -- Lua 格式化配置
-├── CLAUDE.md                -- Claude Code 操作指南
-├── MAINTENANCE.md           -- 维护文档
+│   ├── palette.lua          -- Aurora UI 调色板
+│   └── plugins/             -- lazy.nvim 自动扫描，无 init.lua
+│       ├── theme.lua / alpha.lua / noice.lua
+│       ├── telescope.lua / nvimtree.lua / trouble.lua
+│       ├── lsp.lua / cmp.lua / mason.lua
+│       ├── conform.lua / lint.lua / treesitter.lua
+│       ├── autopairs.lua / surround.lua / todo-comments.lua
+│       ├── markdown.lua / image.lua
+│       └── claude-code.lua / pi-nvim.lua
+├── AGENTS.md / CLAUDE.md    -- AI 编码助手上下文
+├── MAINTENANCE.md           -- 维护指南
 └── Neovim-guide.md          -- 新手使用指南
 ```
 
----
-
 ## 环境要求
 
-- **Neovim >= 0.12**
-- **Git**（lazy.nvim 插件管理器需要）
-- **Node.js + npm**（markdown-preview.nvim 需要）
-- **make**（telescope-fzf-native.nvim 编译需要，macOS/Linux 通常已预装）
-- **claude** CLI（可选，Claude Code 集成需要）
+必需：
+
+- Neovim >= 0.12
+- Git
+- Node.js + npm（markdown-preview.nvim）
+- `make`（编译 telescope-fzf-native.nvim）
+- `ripgrep`（Telescope 全局文本搜索）
+
+按功能可选：
+
+- Nerd Font（图标）
+- ImageMagick，且需支持 Sixel（image.nvim）
+- 支持 Sixel 的终端；当前配置针对 Ghostty
+- `claude` CLI（Claude Code）
+- `pi` CLI，并在 pi 侧安装 `pi-nvim` extension
+- Homebrew `luacheck`（Lua lint）
 
 ## 首次启动
 
-1. 确保满足上面的环境要求
-2. 首次打开 Neovim 时，`lazy.nvim` 会自动下载所有插件
-3. 下载完成后**重启 Neovim**
-4. 运行 `:MasonInstallAll` 安装所有开发工具（格式化器、Linter、LSP）
-5. 运行 `:checkhealth` 确认一切正常
-
-> 由于 `mason-tool-installer` 不会在启动时自动安装（避免网络阻塞），首次使用必须手动执行 `:MasonInstallAll`。
-
----
+1. 启动 Neovim，等待 lazy.nvim 安装插件。
+2. 重启 Neovim。
+3. 运行 `:MasonInstallAll`，安装 stylua、ruff、prettier、sqlfluff 等非 LSP 工具。
+4. mason-lspconfig 会根据 `ensure_installed` 安装所需 LSP；可在 `:Mason` 查看状态。
+5. 运行 `:checkhealth`。
 
 ## 常用命令
 
-| 命令 | 作用 |
-|------|------|
-| `:Lazy` | 打开插件管理器 |
-| `:Mason` | 打开 LSP / 格式化器 / Linter 安装器 |
-| `:MasonInstallAll` | 一键安装本配置所需的所有 Mason 工具 |
-| `:checkhealth` | 健康检查 |
-| `:FormatDisable` | 禁用当前 buffer 的自动格式化（加 `!` 全局禁用） |
-| `:FormatEnable` | 重新启用自动格式化 |
-| `:Telescope find_files` | 查找文件 |
-| `:MarkdownPreviewToggle` | 浏览器预览 Markdown |
-| `:ClaudeCode` | 打开 Claude Code 面板 |
-
----
+| 命令                     | 作用                             |
+| ------------------------ | -------------------------------- |
+| `:Lazy`                  | 插件管理器                       |
+| `:Mason`                 | LSP / Formatter / Linter 管理器  |
+| `:MasonInstallAll`       | 安装配置声明的非 LSP 工具        |
+| `:LspInfo`               | 查看当前 Buffer 的 LSP           |
+| `:ConformInfo`           | 查看格式化器状态                 |
+| `:checkhealth`           | 健康检查                         |
+| `:FormatDisable`         | 全局禁用自动格式化               |
+| `:FormatDisable!`        | 仅当前 Buffer 禁用自动格式化     |
+| `:FormatEnable`          | 清除全局和当前 Buffer 的禁用状态 |
+| `:MarkdownPreviewToggle` | 浏览器预览 Markdown              |
 
 ## 快捷键速查
 
-- **Leader**：`<Space>`
-- **文件搜索**：`<leader>ff`（文件）、`<leader>fw`（全局搜索）
-- **文件树**：`<leader>ee`（开关）、`<leader>eo`（聚焦）
-- **Buffer 切换**：`<leader>bn`（下一个）、`<leader>bp`（上一个）
-- **关闭 Buffer**：`<leader>bd`（当前）、`<leader>bD`（其他）
-- **窗口切换**：`<C-h>` `<C-j>` `<C-k>` `<C-l>`
-- **LSP**：`gd`（定义）、`gr`（引用）、`K`（悬浮文档）、`<leader>ca`（代码动作）
-- **重命名**：`<leader>cr`
+- **搜索**：`<leader>ff` 文件，`<leader>fw` 全局文本，`<leader>fb` Buffer
+- **文件树**：`<leader>ee` 开关，`<leader>eo` 聚焦
+- **Buffer**：`<leader>bn` / `<leader>bp` 切换，`<leader>bd` 安全关闭
+- **LSP**：`gd` 定义，`gr` 引用，`K` 文档，`<leader>ca` Code Action
+- **诊断**：`[d` / `]d` 跳转，`<leader>de` 查看详情
+- **Trouble**：`<leader>xx` 全局诊断，`<leader>xb` 当前 Buffer，`<leader>xt` TODO
 - **格式化**：`<leader>cf`
-- **注释**：`gcc`（当前行）、`gc`（选中）
-- **诊断**：`[d` / `]d`（跳转）、`<leader>d`（详情）
-- **AI**：`<leader>ac`（Claude Code）
-- **Git**：`[g` / `]g`（切换 hunk）
+- **原生注释**：`gcc` 当前行，Visual `gc` 选区
+- **Surround**：`saiw)` 添加，`sd'` 删除，`sr'"` 替换
+- **Git**：`[g` / `]g` 切换 hunk，`<leader>gp` 预览 hunk
+- **Claude Code**：`<leader>ac`
+- **Pi**：`<leader>pp` 对话框，Visual `<leader>pp` 携带选区，`<leader>ps` 发送选区
 
-完整键位说明见 `lua/keymaps.lua` 和 `Neovim-guide.md`。
-
----
-
-## 相关文档
-
-- [Neovim-guide.md](./Neovim-guide.md) — 新手入门与快捷键教程
-- [MAINTENANCE.md](./MAINTENANCE.md) — 如何维护、添加插件、添加 LSP 等
-- [CLAUDE.md](./CLAUDE.md) — 供 Claude Code 使用的仓库上下文
+完整说明见 [Neovim-guide.md](./Neovim-guide.md)。维护配置请阅读 [MAINTENANCE.md](./MAINTENANCE.md)。

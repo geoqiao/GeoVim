@@ -115,7 +115,7 @@ return {
             -- ============================================
             -- 6. ESLint (LSP 模式)
             -- ============================================
-            -- on_attach 中的 EslintFixAll 逻辑已迁移到 autocmds.lua 的 LspAttach 中
+            -- LspEslintFixAll on save 逻辑统一放在 autocmds.lua 的 LspAttach 中
             vim.lsp.config("eslint", {
                 root_markers = {
                     ".eslintrc",
